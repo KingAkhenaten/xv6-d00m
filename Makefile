@@ -158,11 +158,12 @@ ifndef CPUS
 CPUS := 3
 endif
 
-QEMUOPTS = -machine virt -bios none -kernel $K/kernel -m 128M -smp $(CPUS)
+QEMUOPTS = -machine virt -bios none -kernel $K/kernel -m 128M -smp $(CPUS) -nographic
 QEMUOPTS += -global virtio-mmio.force-legacy=false
 QEMUOPTS += -drive file=fs.img,if=none,format=raw,id=x0
 QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
-DISPLAYOPTS = -device VGA
+QEMUOPTS += -device virtio-gpu-device,xres=320,yres=200 -spice port=32666,disable-ticketing=on
+
 
 qemu: $K/kernel fs.img
 	$(QEMU) $(QEMUOPTS) -nographic
