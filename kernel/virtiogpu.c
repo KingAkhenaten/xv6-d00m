@@ -2,6 +2,7 @@
 #include "riscv.h"
 #include "defs.h"
 #include "memlayout.h"
+#include "spinlock.h"
 #include "virtio.h"
 
 /*
@@ -22,15 +23,43 @@ Might help if the MMIO path does not work out and I need to use PCI instead (let
 #define V1(r) ((volatile uint32 *)(VIRTIO1 + (r)))
 
 // virtio structures
+// descriptor set
+// desc[0] -> outgoing
+// desc[1] -> incoming
+// This is temporary while I figure out how this is supposed to work
 struct virtq_desc *desc;
 // available ring: kern -> dev
 struct virtq_avail *avail;
 // used ring: dev -> kern
 struct virtq_used *used;
+// last used entry read??
+// should be == or < the device's tracking
+uint32 used_idx = 0;
+// lock for managing hart access to code and ISR await
+struct spinlock gpulock;
+// this is it- the magic framebuffer
+#define WIDTH 320
+#define HEIGHT 200
+uint32 framebuffer[WIDTH * HEIGHT];
 
+// structs used for requests
+struct virtio_gpu_resource_create_2d createreq;
+struct virtio_gpu_resource_attach_backing_singular attachreq;
+struct virtio_gpu_set_scanout scanoutreq;
+
+struct virtio_gpu_transfer_to_host_2d transreq;
+struct virtio_gpu_resource_flush flushreq;
+// int used for response
+uint32 response;
 void probe_mmio(void);
+void create_device_fb(void);
+void attach_fb(void);
+void config_scanout(void);
+void transfer_fb(void);
+void flush_resource(void);
 
 void init_virtiogpu(void) {
+	initlock(&gpulock,"gpulock");
 	printf("initialising virtiogpu\n");
 	// determine where it is plugged in
 	probe_mmio();
@@ -110,7 +139,11 @@ void init_virtiogpu(void) {
 	status |= VIRTIO_CONFIG_S_DRIVER_OK;
 	*V1(VIRTIO_MMIO_STATUS) = status;
 
+	printf("virtio gpu status: %d\n",*V1(VIRTIO_MMIO_STATUS));
 	// cross fingers
+	// now how do we put pixels on it?
+	create_device_fb();
+	attach_fb();
 }
 
 void probe_mmio(void) {
@@ -145,4 +178,119 @@ void probe_mmio(void) {
 		}
 		printf("\n");
 	}
+}
+
+void virtiogpu_isr(void) {
+	printf("virtiogpu interrupt signalled");
+	acquire(&gpulock);
+	// time to figure out what virtio just did
+	*V1(VIRTIO_MMIO_INTERRUPT_ACK) = *V1(VIRTIO_MMIO_INTERRUPT_STATUS) & 0x3;
+	__sync_synchronize();
+
+	// device writes to used ring, modifies used->idx to determine
+	// it's own placement
+	// used_idx = our local copy determining where in the buffer
+	// we have actually read vs. what virtiogpu wrote back
+	while(used_idx != used->idx){
+		__sync_synchronize();
+		// descriptor that just finished - should be 0
+		int id = used->ring[used_idx % NUM].id;
+		if (id != 0)
+			panic("virtiogpu isr did not get 0");
+		// handle this descriptor response
+		// all responses have no payload, only the status code
+		// if it is anything other than OK_NODATA something is wrong
+		if (response != VIRTIO_GPU_RESP_OK_NODATA) {
+			printf("%d response\n",response);
+			panic("did not get response OK_NO_DATA");
+		}
+		used_idx += 1;
+	}
+
+	release(&gpulock);
+}
+
+void create_device_fb(void) {
+	// hold lock for requesting
+	acquire(&gpulock);
+	// fill framebuffer with red to make debugging easier
+	for (uint32 i = 0; i < WIDTH * HEIGHT; i++) {
+		framebuffer[i] = 0xFFFF0000; // red
+	}
+	// create the request struct-or at least write it
+	struct virtio_gpu_resource_create_2d * req = &createreq;
+	req->hdr.type = VIRTIO_GPU_CMD_RESOURCE_CREATE_2D;
+	req->format = VIRTIO_GPU_FORMAT_A8R8G8B8_UNORM;
+	req->width = 320;
+	req->height = 200;
+	req->resource_id = 666; // should not matter what is here theoretically as long as it is consistent
+	// set up the descriptors
+	desc[0].addr = (uint64) req;
+	desc[0].len = sizeof(struct virtio_gpu_resource_create_2d);
+	desc[0].next = 1; // next is desc[1]
+	desc[0].flags = VRING_DESC_F_NEXT; // device reads, has next
+
+	// I want the device to write into this one int the type
+	// none of the ops I use should have payloads so this theoretically should work
+	response = 42; // magic value
+	desc[1].addr = (uint64) &response;
+	desc[1].len = 4;
+	desc[1].flags = VRING_DESC_F_WRITE; // device writes
+	desc[1].next = 0; // no next
+	// ring setup
+	// tell device we intend to use descriptor 0
+	avail->ring[avail->idx % NUM] = 0;
+	__sync_synchronize();
+	// signal that next entry exists
+	avail->idx += 1;
+  	__sync_synchronize();
+	// finally fire notification
+	*V1(VIRTIO_MMIO_QUEUE_NOTIFY) = 0; // value 0 for controlq
+	// stupid spinning
+	printf("sent create_device_fb request");
+	// ideally should sleep here but what is a void * chan even
+	// will fix later
+	release(&gpulock);
+	printf("create_device_fb releases lock");
+}
+
+void attach_fb(void) {
+	// hold lock for requesting
+	acquire(&gpulock);
+	// create the request struct
+	struct virtio_gpu_resource_attach_backing_singular * req = &attachreq;
+	req->req.hdr.type = VIRTIO_GPU_CMD_RESOURCE_ATTACH_BACKING;
+	req->req.resource_id = 666; // should not matter what is here theoretically as long as it is consistent
+	req->req.nr_entries = 1; // ALWAYS 1. Never anything else.
+	req->entry.addr = (uint64) &framebuffer;
+	req->entry.length = WIDTH * HEIGHT;
+	req->entry.padding = 0;
+	// set up the descriptors
+	desc[0].addr = (uint64) req;
+	desc[0].len = sizeof(struct virtio_gpu_resource_attach_backing_singular);
+	desc[0].next = 1; // next is desc[1]
+	desc[0].flags = VRING_DESC_F_NEXT; // device reads, has next
+
+	// I want the device to write into this one int the type
+	// none of the ops I use should have payloads so this theoretically should work
+	response = 42; // magic value
+	desc[1].addr = (uint64) &response;
+	desc[1].len = 4;
+	desc[1].flags = VRING_DESC_F_WRITE; // device writes
+	desc[1].next = 0; // no next
+	// ring setup
+	// tell device we intend to use descriptor 0
+	avail->ring[avail->idx % NUM] = 0;
+	__sync_synchronize();
+	// signal that next entry exists
+	avail->idx += 1;
+  	__sync_synchronize();
+	// finally fire notification
+	*V1(VIRTIO_MMIO_QUEUE_NOTIFY) = 0; // value 0 for controlq
+	// stupid spinning
+	printf("sent attach_fb request");
+	// ideally should sleep here but what is a void * chan even
+	// will fix later
+	release(&gpulock);
+	printf("attach_fb releases lock");
 }

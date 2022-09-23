@@ -26,7 +26,9 @@
 #define VIRTIO0_IRQ 1
 
 // virtio gpu
+// I hope the IRQ works as I hope it to
 #define VIRTIO1 0x10002000
+#define VIRTIO1_IRQ 2
 
 // core local interruptor (CLINT), which contains the timer.
 #define CLINT 0x2000000L
