@@ -51,6 +51,8 @@ struct virtio_gpu_transfer_to_host_2d transreq;
 struct virtio_gpu_resource_flush flushreq;
 // int used for response
 uint32 response;
+// is request in flight?
+uint32 request_inflight = 0;
 void probe_mmio(void);
 void create_device_fb(void);
 void attach_fb(void);
@@ -111,7 +113,7 @@ void init_virtiogpu(void) {
 	if(max < NUM)
 		panic("virtiogpu max queue too short (is it really?)");
 
-	// allocate and zero queue memory. ???
+	// allocate and zero queue memory.
 	desc = kalloc();
 	avail = kalloc();
 	used = kalloc();
@@ -144,8 +146,12 @@ void init_virtiogpu(void) {
 	// now how do we put pixels on it?
 	create_device_fb();
 	attach_fb();
+	config_scanout();
+	transfer_fb();
+	flush_resource();
 }
 
+// Probe the MMIO ports we expect and print what is there
 void probe_mmio(void) {
 	printf("probing virtio0: ");
 	if (*V0(VIRTIO_MMIO_MAGIC_VALUE) == VIRTIO_MMIO_MAGIC_VALUE_EXPECTED) {
@@ -180,9 +186,12 @@ void probe_mmio(void) {
 	}
 }
 
+// ISR for virtiogpu interrupts. It's expected the ISR will only be called while an operation has yet to return
+// The operation should be spinning at this time waiting for the ISR to finish
 void virtiogpu_isr(void) {
-	printf("virtiogpu interrupt signalled");
+	printf("virtiogpu interrupt signalled\n");
 	acquire(&gpulock);
+	printf("virtiogpu interrupt got the lock\n");
 	// time to figure out what virtio just did
 	*V1(VIRTIO_MMIO_INTERRUPT_ACK) = *V1(VIRTIO_MMIO_INTERRUPT_STATUS) & 0x3;
 	__sync_synchronize();
@@ -206,16 +215,21 @@ void virtiogpu_isr(void) {
 		}
 		used_idx += 1;
 	}
-
+	// unblock spinning threads
+	request_inflight = 0;
+	__sync_synchronize();
 	release(&gpulock);
 }
 
 void create_device_fb(void) {
 	// hold lock for requesting
 	acquire(&gpulock);
+	request_inflight = 1;
 	// fill framebuffer with red to make debugging easier
 	for (uint32 i = 0; i < WIDTH * HEIGHT; i++) {
-		framebuffer[i] = 0xFFFF0000; // red
+		uint32 y = i / WIDTH;
+		uint32 x = i % WIDTH;
+		framebuffer[i] = 0xFF000000 | (y & 0xFF) << 16 | (x & 0xFF) << 8;
 	}
 	// create the request struct-or at least write it
 	struct virtio_gpu_resource_create_2d * req = &createreq;
@@ -246,24 +260,30 @@ void create_device_fb(void) {
   	__sync_synchronize();
 	// finally fire notification
 	*V1(VIRTIO_MMIO_QUEUE_NOTIFY) = 0; // value 0 for controlq
-	// stupid spinning
-	printf("sent create_device_fb request");
-	// ideally should sleep here but what is a void * chan even
-	// will fix later
+
+	printf("sent create_device_fb request\n");
 	release(&gpulock);
-	printf("create_device_fb releases lock");
+	// Turn on interrupts temporarily and spin until ISR finishes
+	intr_on();
+	while (request_inflight == 1) {
+		__sync_synchronize(); // hacky but it works
+	}
+	// ...and turn them back off
+	intr_off();
+	printf("create_device_fb ends\n");
 }
 
 void attach_fb(void) {
 	// hold lock for requesting
 	acquire(&gpulock);
+	request_inflight = 1;
 	// create the request struct
 	struct virtio_gpu_resource_attach_backing_singular * req = &attachreq;
 	req->req.hdr.type = VIRTIO_GPU_CMD_RESOURCE_ATTACH_BACKING;
 	req->req.resource_id = 666; // should not matter what is here theoretically as long as it is consistent
 	req->req.nr_entries = 1; // ALWAYS 1. Never anything else.
 	req->entry.addr = (uint64) &framebuffer;
-	req->entry.length = WIDTH * HEIGHT;
+	req->entry.length = WIDTH * HEIGHT * 4;
 	req->entry.padding = 0;
 	// set up the descriptors
 	desc[0].addr = (uint64) req;
@@ -287,10 +307,160 @@ void attach_fb(void) {
   	__sync_synchronize();
 	// finally fire notification
 	*V1(VIRTIO_MMIO_QUEUE_NOTIFY) = 0; // value 0 for controlq
-	// stupid spinning
-	printf("sent attach_fb request");
-	// ideally should sleep here but what is a void * chan even
-	// will fix later
+
+	printf("sent attach_fb request\n");
 	release(&gpulock);
-	printf("attach_fb releases lock");
+	// Turn on interrupts temporarily and spin until ISR finishes
+	intr_on();
+	while (request_inflight == 1) {
+		__sync_synchronize(); // hacky but it works
+	}
+	// ...and turn them back off
+	intr_off();
+	printf("attach_fb ends\n");
+}
+
+void config_scanout(void) {
+	// hold lock for requesting
+	acquire(&gpulock);
+	request_inflight = 1;
+	// create the request struct
+	struct virtio_gpu_set_scanout * req = &scanoutreq;
+	req->hdr.type = VIRTIO_GPU_CMD_SET_SCANOUT;
+	req->scanout_id = 0; // 0 should be the only screen
+	req->resource_id = 666; // should not matter what is here theoretically as long as it is consistent
+	req->r.x = 0;
+	req->r.y = 0;
+	req->r.height = HEIGHT;
+	req->r.width = WIDTH;
+	// set up the descriptors
+	desc[0].addr = (uint64) req;
+	desc[0].len = sizeof(struct virtio_gpu_set_scanout);
+	desc[0].next = 1; // next is desc[1]
+	desc[0].flags = VRING_DESC_F_NEXT; // device reads, has next
+
+	// I want the device to write into this one int the type
+	// none of the ops I use should have payloads so this theoretically should work
+	response = 42; // magic value
+	desc[1].addr = (uint64) &response;
+	desc[1].len = 4;
+	desc[1].flags = VRING_DESC_F_WRITE; // device writes
+	desc[1].next = 0; // no next
+	// ring setup
+	// tell device we intend to use descriptor 0
+	avail->ring[avail->idx % NUM] = 0;
+	__sync_synchronize();
+	// signal that next entry exists
+	avail->idx += 1;
+  	__sync_synchronize();
+	// finally fire notification
+	*V1(VIRTIO_MMIO_QUEUE_NOTIFY) = 0; // value 0 for controlq
+
+	printf("sent config_scanout request\n");
+	release(&gpulock);
+	// Turn on interrupts temporarily and spin until ISR finishes
+	intr_on();
+	while (request_inflight == 1) {
+		__sync_synchronize(); // hacky but it works
+	}
+	// ...and turn them back off
+	intr_off();
+	printf("config_scanout ends\n");
+}
+
+void transfer_fb(void) {
+	// hold lock for requesting
+	acquire(&gpulock);
+	request_inflight = 1;
+	// create the request struct
+	struct virtio_gpu_transfer_to_host_2d * req = &transreq;
+	req->hdr.type = VIRTIO_GPU_CMD_TRANSFER_TO_HOST_2D;
+	req->resource_id = 666; // should not matter what is here theoretically as long as it is consistent
+	req->r.x = 0;
+	req->r.y = 0;
+	req->r.height = HEIGHT;
+	req->r.width = WIDTH;
+	req->offset = 0; // whole fb transfer so no meaningful offset
+	req->padding = 0; // just to be safe
+	// set up the descriptors
+	desc[0].addr = (uint64) req;
+	desc[0].len = sizeof(struct virtio_gpu_transfer_to_host_2d);
+	desc[0].next = 1; // next is desc[1]
+	desc[0].flags = VRING_DESC_F_NEXT; // device reads, has next
+
+	// I want the device to write into this one int the type
+	// none of the ops I use should have payloads so this theoretically should work
+	response = 42; // magic value
+	desc[1].addr = (uint64) &response;
+	desc[1].len = 4;
+	desc[1].flags = VRING_DESC_F_WRITE; // device writes
+	desc[1].next = 0; // no next
+	// ring setup
+	// tell device we intend to use descriptor 0
+	avail->ring[avail->idx % NUM] = 0;
+	__sync_synchronize();
+	// signal that next entry exists
+	avail->idx += 1;
+  	__sync_synchronize();
+	// finally fire notification
+	*V1(VIRTIO_MMIO_QUEUE_NOTIFY) = 0; // value 0 for controlq
+
+	printf("sent transfer_fb request\n");
+	release(&gpulock);
+	// Turn on interrupts temporarily and spin until ISR finishes
+	intr_on();
+	while (request_inflight == 1) {
+		__sync_synchronize(); // hacky but it works
+	}
+	// ...and turn them back off
+	intr_off();
+	printf("transfer_fb ends\n");
+}
+
+void flush_resource(void) {
+	// hold lock for requesting
+	acquire(&gpulock);
+	request_inflight = 1;
+	// create the request struct
+	struct virtio_gpu_resource_flush * req = &flushreq;
+	req->hdr.type = VIRTIO_GPU_CMD_RESOURCE_FLUSH;
+	req->resource_id = 666; // should not matter what is here theoretically as long as it is consistent
+	req->r.x = 0;
+	req->r.y = 0;
+	req->r.height = HEIGHT;
+	req->r.width = WIDTH;
+	req->padding = 0; // again, to be safe
+	// set up the descriptors
+	desc[0].addr = (uint64) req;
+	desc[0].len = sizeof(struct virtio_gpu_resource_flush);
+	desc[0].next = 1; // next is desc[1]
+	desc[0].flags = VRING_DESC_F_NEXT; // device reads, has next
+
+	// I want the device to write into this one int the type
+	// none of the ops I use should have payloads so this theoretically should work
+	response = 42; // magic value
+	desc[1].addr = (uint64) &response;
+	desc[1].len = 4;
+	desc[1].flags = VRING_DESC_F_WRITE; // device writes
+	desc[1].next = 0; // no next
+	// ring setup
+	// tell device we intend to use descriptor 0
+	avail->ring[avail->idx % NUM] = 0;
+	__sync_synchronize();
+	// signal that next entry exists
+	avail->idx += 1;
+  	__sync_synchronize();
+	// finally fire notification
+	*V1(VIRTIO_MMIO_QUEUE_NOTIFY) = 0; // value 0 for controlq
+
+	printf("sent resource_flush request\n");
+	release(&gpulock);
+	// Turn on interrupts temporarily and spin until ISR finishes
+	intr_on();
+	while (request_inflight == 1) {
+		__sync_synchronize(); // hacky but it works
+	}
+	// ...and turn them back off
+	intr_off();
+	printf("resource_flush ends\n");
 }

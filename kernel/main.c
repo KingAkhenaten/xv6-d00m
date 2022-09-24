@@ -41,6 +41,6 @@ main()
     trapinithart();   // install kernel trap vector
     plicinithart();   // ask PLIC for device interrupts
   }
-
+  // LW: Until scheduler() we do not get interrupts...
   scheduler();        
 }
