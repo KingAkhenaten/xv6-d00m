@@ -28,7 +28,8 @@ OBJS = \
   $K/sysfile.o \
   $K/kernelvec.o \
   $K/plic.o \
-  $K/virtio_disk.o
+  $K/virtio_disk.o \
+  $K/virtiogpu.o
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
@@ -162,7 +163,8 @@ QEMUOPTS = -machine virt -bios none -kernel $K/kernel -m 128M -smp $(CPUS)
 QEMUOPTS += -global virtio-mmio.force-legacy=false
 QEMUOPTS += -drive file=fs.img,if=none,format=raw,id=x0
 QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
-DISPLAYOPTS = -device VGA
+DISPLAYOPTS = -device virtio-gpu-device,bus=virtio-mmio-bus.1,xres=320,yres=200 -spice port=32666,disable-ticketing=on
+
 
 qemu: $K/kernel fs.img
 	$(QEMU) $(QEMUOPTS) -nographic
