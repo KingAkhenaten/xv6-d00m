@@ -72,6 +72,7 @@ void bind_desc_and_fire(void * req_addr, uint32 req_size);
 void transfer_fb_us(void);
 void flush_resource_us(void);
 void bind_desc_and_fire_us(void * req_addr, uint32 req_size);
+void sleep_until_dormant(void);
 
 // KERNEL INIT
 
@@ -383,12 +384,43 @@ void bind_desc_and_fire(void * req_addr, uint32 req_size) {
 // USER SYSCALL
 // Transfer framebuffer to the hypervisor's framebuffer - user syscall version
 void transfer_fb_us(void) {
-
+	// hold lock for requesting
+	acquire(&gpulock);
+	sleep_until_dormant();
+	request_inflight = 1;
+	// create the request struct
+	struct virtio_gpu_transfer_to_host_2d * req = &transreq;
+	req->hdr.type = VIRTIO_GPU_CMD_TRANSFER_TO_HOST_2D;
+	req->resource_id = 666; // should not matter what is here theoretically as long as it is consistent
+	req->r.x = 0;
+	req->r.y = 0;
+	req->r.height = HEIGHT;
+	req->r.width = WIDTH;
+	req->offset = 0; // whole fb transfer so no meaningful offset
+	req->padding = 0; // just to be safe
+	
+	bind_desc_and_fire_us(req,sizeof(struct virtio_gpu_transfer_to_host_2d));
+	printf("transfer_fb_us ends\n");
 }
 
 // Flush the screen so the framebuffer is drawn - user syscall version
 void flush_resource_us(void) {
-
+	// hold lock for requesting
+	acquire(&gpulock);
+	sleep_until_dormant();
+	request_inflight = 1;
+	// create the request struct
+	struct virtio_gpu_resource_flush * req = &flushreq;
+	req->hdr.type = VIRTIO_GPU_CMD_RESOURCE_FLUSH;
+	req->resource_id = 666; // should not matter what is here theoretically as long as it is consistent
+	req->r.x = 0;
+	req->r.y = 0;
+	req->r.height = HEIGHT;
+	req->r.width = WIDTH;
+	req->padding = 0; // again, to be safe
+	
+	bind_desc_and_fire_us(req,sizeof(struct virtio_gpu_resource_flush));
+	printf("resource_flush_us ends\n");
 }
 
 // Bind the needed descriptors for input/output buffers, fire the request, and sleep the current process until
@@ -415,9 +447,16 @@ void bind_desc_and_fire_us(void * req_addr, uint32 req_size) {
 	// finally fire notification
 	*V1(VIRTIO_MMIO_QUEUE_NOTIFY) = 0; // value 0 for controlq
 	// sleep the process until request_inflight becomes 0
+	sleep_until_dormant();
+	// release the lock
+	release(&gpulock);
+}
+
+// Sleep the current process until virtiogpu becomes dormant.
+void sleep_until_dormant(void) {
+	printf("waiting for dormant virtiogpu\n");
 	while (request_inflight == 1) {
 		sleep(&request_inflight,&gpulock);
 	}
-	// release the lock
-	release(&gpulock);
+	printf("virtiogpu now dormant\n");
 }
