@@ -135,7 +135,7 @@ UPROGS=\
 	$U/_zombie\
 	$U/_motd\
 	$U/_ed\
-	$U/_ustest\
+	$U/_gputest\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
