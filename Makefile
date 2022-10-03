@@ -178,3 +178,6 @@ qemu-gdb: $K/kernel .gdbinit fs.img
 
 qemu-vga: $K/kernel fs.img
 	$(QEMU) $(QEMUOPTS) $(DISPLAYOPTS)
+
+qemu-vga-nographic: $K/kernel fs.img
+	$(QEMU) $(QEMUOPTS) $(DISPLAYOPTS) -nographic
