@@ -60,6 +60,7 @@ uint32 response;
 uint32 request_inflight = 0;
 
 // function declarations
+// KERNEL INIT - called once entirely in kernel mode, exclusive control over interrupts
 void probe_mmio(void);
 void create_device_fb(void);
 void attach_fb(void);
@@ -67,6 +68,12 @@ void config_scanout(void);
 void transfer_fb(void);
 void flush_resource(void);
 void bind_desc_and_fire(void * req_addr, uint32 req_size);
+// USER SYSCALL - called from a syscall from a user process, does not mess with interrupt masking and properly yields
+void transfer_fb_us(void);
+void flush_resource_us(void);
+void bind_desc_and_fire_us(void * req_addr, uint32 req_size);
+
+// KERNEL INIT
 
 // Initialise the virtiogpu device fully, including device handshaking and any
 // virtio commands that need to be sent to make it ready for *us* before we leave
@@ -233,6 +240,8 @@ void virtiogpu_isr(void) {
 	request_inflight = 0;
 	__sync_synchronize();
 	release(&gpulock);
+	// awake userspace threads
+	wakeup(&request_inflight);
 }
 
 // Create the framebuffer on the hypervisor side
@@ -369,4 +378,46 @@ void bind_desc_and_fire(void * req_addr, uint32 req_size) {
 	}
 	// ...and turn them back off
 	intr_off();
+}
+
+// USER SYSCALL
+// Transfer framebuffer to the hypervisor's framebuffer - user syscall version
+void transfer_fb_us(void) {
+
+}
+
+// Flush the screen so the framebuffer is drawn - user syscall version
+void flush_resource_us(void) {
+
+}
+
+// Bind the needed descriptors for input/output buffers, fire the request, and sleep the current process until
+// the ISR can return. User syscall only
+void bind_desc_and_fire_us(void * req_addr, uint32 req_size) {
+	// set up the descriptors caller passed
+	desc[0].addr = (uint64) req_addr; // request buffer address
+	desc[0].len = req_size; // size of the buffer
+	desc[0].next = 1; // next is desc[1]
+	desc[0].flags = VRING_DESC_F_NEXT; // device reads, has next
+
+	response = 42; // magic value
+	desc[1].addr = (uint64) &response;
+	desc[1].len = sizeof(uint64);
+	desc[1].flags = VRING_DESC_F_WRITE; // device writes
+	desc[1].next = 0; // no next
+	// ring setup
+	// tell device we intend to use descriptor 0
+	avail->ring[avail->idx % NUM] = 0;
+	__sync_synchronize();
+	// signal that next entry exists
+	avail->idx += 1;
+  	__sync_synchronize();
+	// finally fire notification
+	*V1(VIRTIO_MMIO_QUEUE_NOTIFY) = 0; // value 0 for controlq
+	// sleep the process until request_inflight becomes 0
+	while (request_inflight == 1) {
+		sleep(&request_inflight,&gpulock);
+	}
+	// release the lock
+	release(&gpulock);
 }
