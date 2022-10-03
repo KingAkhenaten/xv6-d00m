@@ -7,5 +7,6 @@ int main(int argc, char ** argv) {
 	if (syscall_result == 42) {
 		printf("syscall_result == 42\n");
 	}
+	printf("syscall done\n");
 	return 0;
 }
