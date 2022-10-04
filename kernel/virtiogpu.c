@@ -82,6 +82,8 @@ void sleep_until_dormant(void);
 void init_virtiogpu(void) {
 	initlock(&gpulock,"gpulock");
 	printf("initialising virtiogpu\n");
+	printf("framebuffer at %p\n",&framebuffer);
+	printf("kernelend at %p\n",&end);
 	// determine where it is plugged in
 	probe_mmio();
 	// we should have been VIRTIO1

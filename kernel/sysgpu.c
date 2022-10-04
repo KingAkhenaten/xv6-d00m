@@ -19,5 +19,5 @@ uint64 sys_gpucmd(void) {
 			flush_resource_us();
 			return 0;
 	}
-	return ~0;
+	return ~0ULL;
 }
