@@ -18,6 +18,15 @@ uint64 sys_gpucmd(void) {
 			transfer_fb_us();
 			flush_resource_us();
 			return 0;
+		case 1:
+			// Call 1 - acquire exclusive access and map framebuffer into user memory, returns uint32 * or NULL
+			break;
+		case 2:
+			// Call 2 - release exclusive access and unmap framebuffer from memory, returns 0
+			break;
+		case 3:
+			// Call 3 - test if current process owns the framebuffer, returns 0 or 1
+			break;
 	}
 	return ~0ULL;
 }
