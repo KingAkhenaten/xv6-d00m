@@ -60,6 +60,9 @@ struct virtio_gpu_resource_flush flushreq;
 uint32 response;
 // is request in flight? 1 if so, 0 otherwise
 uint32 request_inflight = 0;
+// pid of process with exclusive framebuffer access, -1 otherwise
+#define NOT_LOCKED -1
+int locked_pid = NOT_LOCKED;
 
 // function declarations
 // KERNEL INIT - called once entirely in kernel mode, exclusive control over interrupts
@@ -75,6 +78,9 @@ void transfer_fb_us(void);
 void flush_resource_us(void);
 void bind_desc_and_fire_us(void * req_addr, uint32 req_size);
 void sleep_until_dormant(void);
+int acquire_fb(int pid);
+void release_fb(int pid);
+int holds_fb(int pid);
 
 // KERNEL INIT
 

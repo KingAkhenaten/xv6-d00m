@@ -8,6 +8,7 @@ Syscall support for the virtiogpu framebuffer
 // from virtiogpu.c
 void transfer_fb_us(void);
 void flush_resource_us(void);
+extern uint32 * framebuffer;
 
 uint64 sys_gpucmd(void) {
 	int callno = 0; // call number userspace gave us
@@ -20,7 +21,7 @@ uint64 sys_gpucmd(void) {
 			return 0;
 		case 1:
 			// Call 1 - acquire exclusive access and map framebuffer into user memory, returns uint32 * or NULL
-			break;
+			return (uint64) &framebuffer;
 		case 2:
 			// Call 2 - release exclusive access and unmap framebuffer from memory, returns 0
 			break;
