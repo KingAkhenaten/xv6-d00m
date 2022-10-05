@@ -30,6 +30,9 @@
 #define VIRTIO1 0x10002000
 #define VIRTIO1_IRQ 2
 
+#define VIRTIO2 0x10003000
+#define VIRTIO2_IRQ 3
+
 // core local interruptor (CLINT), which contains the timer.
 #define CLINT 0x2000000L
 #define CLINT_MTIMECMP(hartid) (CLINT + 0x4000 + 8*(hartid))

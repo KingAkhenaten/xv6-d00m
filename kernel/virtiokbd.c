@@ -25,6 +25,8 @@ uint32 used_idx = 0;
 // lock for managing hart access to code and ISR await
 // struct spinlock gpulock;
 
+struct virtio_input_event input_event;
+
 void init_virtiokbd(void) {
 	//initlock(&kbdlock, "kbdlock");
 	// determine where kbd is
@@ -81,7 +83,14 @@ void init_virtiokbd(void) {
 		panic("virtiokbd max queue too short");
 
 	// allocate and zero queue memory
-	/desc
+	desc = kalloc();
+	avail = kalloc();
+	used = kalloc();
+	if(!avail || !used || !desc)
+		panic("virtiokbd kalloc");
+	memset(avail, 0, PGSIZE);
+	memset(used, 0, PGSIZE);
+	memset(desc, 0, PGSIZE);
 	
 	
 	// Set the DRIVER_OK status bit. At this point the device is live
