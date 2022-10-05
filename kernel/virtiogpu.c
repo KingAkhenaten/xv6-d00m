@@ -43,7 +43,9 @@ struct spinlock gpulock;
 // to clarify, this is our local copy that we upload to the host
 #define WIDTH 320
 #define HEIGHT 200
-uint32 framebuffer[WIDTH * HEIGHT];
+
+// Has to be page-aligned so PTEs work. GCC extension.
+uint32 framebuffer[WIDTH * HEIGHT] __attribute__((aligned (PGSIZE)));
 
 // structs used for requests
 // these three are ceremonial stuff run once for making the framebuffer on the hypervisor, binding it to memory
