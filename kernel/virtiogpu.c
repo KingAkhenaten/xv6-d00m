@@ -241,11 +241,22 @@ void create_device_fb(void) {
 	acquire(&gpulock);
 	request_inflight = 1;
 	// fill framebuffer with red to make debugging easier
+	/*
+	// I made it blue B^).  - christian
 	for (uint32 i = 0; i < WIDTH * HEIGHT; i++) {
 		uint32 y = i / WIDTH;
 		uint32 x = i % WIDTH;
-		framebuffer[i] = 0xFF000000 | (y & 0xFF) << 16 | (x & 0xFF) << 8;
+		framebuffer[i] = 0xFF000000 | (y & 0xFF) << 16 | (x & 0xFF) << 0;
 	}
+	*/
+	// messing around with the framebuffer
+	for (uint32 i = 0; i < WIDTH * HEIGHT; i++){
+		//uint32 y = i / WIDTH;
+		//uint32 x = i % WIDTH;
+		framebuffer[i] = 0xFFFFFFFF;
+
+	}
+
 	// create the request struct-or at least write it
 	struct virtio_gpu_resource_create_2d * req = &createreq;
 	req->hdr.type = VIRTIO_GPU_CMD_RESOURCE_CREATE_2D;

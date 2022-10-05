@@ -217,3 +217,9 @@ struct virtio_gpu_resource_flush {
 	uint32 resource_id; 
 	uint32 padding; 
 };
+
+struct virtio_input_event {
+	uint16 type;
+	uint16 code;
+	uint32 value;
+};

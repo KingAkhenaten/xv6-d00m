@@ -29,7 +29,8 @@ OBJS = \
   $K/kernelvec.o \
   $K/plic.o \
   $K/virtio_disk.o \
-  $K/virtiogpu.o
+  $K/virtiogpu.o \
+  $K/virtiokbd.o
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
@@ -164,17 +165,17 @@ QEMUOPTS += -global virtio-mmio.force-legacy=false
 QEMUOPTS += -drive file=fs.img,if=none,format=raw,id=x0
 QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 DISPLAYOPTS = -device virtio-gpu-device,bus=virtio-mmio-bus.1,xres=320,yres=200
-
+KEYBOARDOPTS = -device virtio-keyboard-device,bus=virtio-mmio-bus.2
 
 qemu: $K/kernel fs.img
-	$(QEMU) $(QEMUOPTS) $(DISPLAYOPTS) -nographic
+	$(QEMU) $(QEMUOPTS) $(KEYBOARDOPTS) $(DISPLAYOPTS) -nographic
 
 .gdbinit: .gdbinit.tmpl-riscv
 	sed "s/:1234/:$(GDBPORT)/" < $^ > $@
 
 qemu-gdb: $K/kernel .gdbinit fs.img
 	@echo "*** Now run 'gdb' in another window." 1>&2
-	$(QEMU) $(QEMUOPTS) -S $(QEMUGDB)
+	$(QEMU) $(QEMUOPTS) $(KEYBOARDOPTS) $(DISPLAYOPTS) -S $(QEMUGDB) -nographic
 
 qemu-vga: $K/kernel fs.img
-	$(QEMU) $(QEMUOPTS) $(DISPLAYOPTS)
+	$(QEMU) $(QEMUOPTS) $(KEYBOARDOPTS) $(DISPLAYOPTS)
