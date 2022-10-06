@@ -4,6 +4,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "virtio.h"
+#include "proc.h"
 
 /*
 Self note from the virtio specification:
@@ -78,9 +79,10 @@ void transfer_fb_us(void);
 void flush_resource_us(void);
 void bind_desc_and_fire_us(void * req_addr, uint32 req_size);
 void sleep_until_dormant(void);
-int acquire_fb(int pid);
-void release_fb(int pid);
-int holds_fb(int pid);
+int acquire_fb(void);
+void release_fb(void);
+int holds_fb(void);
+int get_current_pid(void);
 
 // KERNEL INIT
 
@@ -468,4 +470,34 @@ void sleep_until_dormant(void) {
 		sleep(&request_inflight,&gpulock);
 	}
 	printf("virtiogpu now dormant\n");
+}
+
+// Make current process acquire the framebuffer
+// Returns 1 if now owned by the current process, 0 otherwise
+int acquire_fb(void) {
+	int this_pid = get_current_pid();
+	if (this_pid == 0)
+		panic("acquire_fb called from null process");
+	// acquire GPU lock, try to see if we can acquire the framebuffer exclusively
+	acquire(&gpulock);
+	if (locked_pid == this_pid) {
+		
+	} else if (locked_pid == 0) { // not owned
+		locked_pid = this_pid;
+	} else { // someone else owns it
+		
+	}
+}
+void release_fb(void);
+int holds_fb(void);
+
+int get_current_pid(void) {
+	struct proc * this_proc = myproc();
+	if (this_proc == 0) return 0; // no process
+	int pid = 0;
+	// grab process lock so we can get the pid
+	acquire(&this_proc->lock);
+	pid = this_proc->pid;
+	release(&this_proc->lock);
+	return pid;
 }
