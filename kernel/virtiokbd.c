@@ -26,20 +26,26 @@ struct virtq_desc *statusq_desc;
 struct virtq_avail_kbd *statusq_avail;
 struct virtq_used_kbd *statusq_used;
 
-// last used entry read??
+// last used entry that we have read
+// when we take the interrupt we want to keep reading until we catch up with the device
 // should be == or < the device's tracking
+// seperate counter for every virtqueue
 uint32 eventq_used_idx = 0;
 uint32 statusq_used_idx = 0;
-// lock for managing hart access to code and ISR await
+// lock for managing hart access to code and ISR await from multiple harts
 struct spinlock kbdlock;
 
+// holds the array of buffers holding input event data we are waiting to get
+// each buffer is mapped to the virtio descriptor with the same index i.e. iea[43] is used for descriptor 43
 struct virtio_input_event input_event_array[KBD_NUM];
+// marks buffers (and their descriptor bound to the same id) whether they are in use or not: 1 = in use, 0 = not
 char used_buffers_eventq[KBD_NUM] = { [0 ... (KBD_NUM-1)] = 0};
 
 // Function Delcarations
 //void probe_mmio(void);
 void kbd_bind_desc_and_fire_eventq(int);
 
+// Search the input event array for a buffer that isn't in use yet, -1 if all buffers used
 int find_available_buffer_eventq(void){
 	for (int i = 0; i < KBD_NUM; i++){
 		if (used_buffers_eventq[i] == 0)
@@ -49,7 +55,7 @@ int find_available_buffer_eventq(void){
 }
 
 void init_virtiokbd(void) {
-	//initlock(&kbdlock, "kbdlock");
+	initlock(&kbdlock, "kbdlock");
 	// determine where kbd is
 	//probe_mmio();
 
@@ -216,11 +222,15 @@ void init_virtiokbd(void) {
 	*/
 
 	// populate eventq with receive buffers
+	acquire(&kbdlock);
 	for (int desc_idx = 0; desc_idx < KBD_NUM; desc_idx++){
-		// look for unused descriptor
+		// look for unused descriptor; this should not possibly fail
 		int buffer_idx = find_available_buffer_eventq();
+		if (buffer_idx == -1)
+			panic("virtiokbd failed to find buffer in init; this should not happen");
 		kbd_bind_desc_and_fire_eventq(buffer_idx);
-	}	
+	}
+	release(&kbdlock); // stop the interrupt from getting too far ahead of us until we stick all the buffers in
 }
 
 void virtiokbd_isr(void) {
@@ -236,14 +246,11 @@ void virtiokbd_isr(void) {
         // it's own placement
         // used_idx = our local copy determining where in the buffer
         // we have actually read vs. what virtiokbd wrote back
-        // note: this loop likely should not execute more than once
         while(eventq_used_idx != eventq_used->idx){
                 __sync_synchronize();
-                // descriptor that just finished - should be 0 since that is the only descriptor used
+                // get descriptor that just finished at eventq_used_idx
                 int id = eventq_used->ring[eventq_used_idx % KBD_NUM].id; // grab the descriptor ID out of the used ring
-                // handle this descriptor response that the virtiokbd driver will have written into 'response'
-                // all responses have no payload, only the status code
-                // if it is anything other than OK_NODATA something is wrong
+                // handle this descriptor response that the virtiokbd driver will have written into our input buffer at iea[id]
 		printf("id=%d type=%d\tcode=%d\tvalue=%d\n", id
 						     , input_event_array[id].type
 						     , input_event_array[id].code
@@ -253,26 +260,27 @@ void virtiokbd_isr(void) {
         	// mark the buffer as free
 		used_buffers_eventq[id] = 0;
 		__sync_synchronize();
-		// push more buffers to keep the events rolling
+		// push more buffers to keep the events rolling since this buffer just became unused
 		kbd_bind_desc_and_fire_eventq(id);
 	}
 	release(&kbdlock);
 	printf("virtiokbd released the lock\n");
 }
 
+// Set up the descriptor desc_idx, prepare it's associated buffer and fire the request into the eventq
 void kbd_bind_desc_and_fire_eventq(int desc_idx) {
-
+	// Zero initialise data that the device will overwrite when it returns in the interrupt
        	input_event_array[desc_idx].type = 0;
        	input_event_array[desc_idx].code = 0;
 	input_event_array[desc_idx].value = 0;
 	used_buffers_eventq[desc_idx] = 1;
-
+	// set up the descriptor info to bind the buffer
 	eventq_desc[desc_idx].addr = (uint64) &input_event_array[desc_idx];
         eventq_desc[desc_idx].len = sizeof(struct virtio_input_event);
         eventq_desc[desc_idx].flags = VRING_DESC_F_WRITE; // device writes
-        eventq_desc[desc_idx].next = 0; // no next
+        eventq_desc[desc_idx].next = 0; // no next; no descriptor chaining here
 
-	// ring setup
+	// ring setup - place descriptor in the eventq virtqueue/ring
         eventq_avail->ring[eventq_avail->idx % KBD_NUM] = desc_idx;
         __sync_synchronize();
         // signal that next entry exists
