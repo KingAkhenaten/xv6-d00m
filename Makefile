@@ -175,7 +175,7 @@ qemu: $K/kernel fs.img
 
 qemu-gdb: $K/kernel .gdbinit fs.img
 	@echo "*** Now run 'gdb' in another window." 1>&2
-	$(QEMU) $(QEMUOPTS) $(KEYBOARDOPTS) $(DISPLAYOPTS) -S $(QEMUGDB) -nographic
+	$(QEMU) $(QEMUOPTS) $(KEYBOARDOPTS) $(DISPLAYOPTS) -S $(QEMUGDB) 
 
 qemu-vga: $K/kernel fs.img
 	$(QEMU) $(QEMUOPTS) $(KEYBOARDOPTS) $(DISPLAYOPTS)

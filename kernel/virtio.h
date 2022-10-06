@@ -29,6 +29,9 @@
 #define VIRTIO_MMIO_DRIVER_DESC_HIGH	0x094
 #define VIRTIO_MMIO_DEVICE_DESC_LOW	0x0a0 // physical address for used ring, write-only
 #define VIRTIO_MMIO_DEVICE_DESC_HIGH	0x0a4
+#define VIRTIO_MMIO_DEVICE_CONFIG_SPACE 0x100 // Device-specific configuration space starts at the 
+					      // offset 0x100 and is accessed with byte alignment. 
+					      // Its meaning and size depend on the device and the driver.
 
 // status register bits, from qemu virtio_config.h
 #define VIRTIO_CONFIG_S_ACKNOWLEDGE	1
@@ -218,8 +221,47 @@ struct virtio_gpu_resource_flush {
 	uint32 padding; 
 };
 
+// virtiokbd
 struct virtio_input_event {
 	uint16 type;
 	uint16 code;
 	uint32 value;
+};
+
+enum virtio_input_config_select {
+  VIRTIO_INPUT_CFG_UNSET      = 0x00,
+  VIRTIO_INPUT_CFG_ID_NAME    = 0x01,
+  VIRTIO_INPUT_CFG_ID_SERIAL  = 0x02,
+  VIRTIO_INPUT_CFG_ID_DEVIDS  = 0x03,
+  VIRTIO_INPUT_CFG_PROP_BITS  = 0x10,
+  VIRTIO_INPUT_CFG_EV_BITS    = 0x11,
+  VIRTIO_INPUT_CFG_ABS_INFO   = 0x12,
+};
+
+struct virtio_input_absinfo {
+  uint32  min;
+  uint32  max;
+  uint32  fuzz;
+  uint32  flat;
+  uint32  res;
+};
+
+struct virtio_input_devids {
+  uint16  bustype;
+  uint16  vendor;
+  uint16  product;
+  uint16  version;
+};
+
+struct virtio_input_config {
+  uint8    select;
+  uint8    subsel;
+  uint8    size;
+  uint8    reserved[5];
+  union {
+    char string[128];
+    uint8   bitmap[128];
+    struct virtio_input_absinfo abs;
+    struct virtio_input_devids ids;
+  } u;
 };
