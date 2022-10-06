@@ -22,7 +22,7 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
-uint64 gpucmd(int cmd);
+uint64 gpucmd(int cmd); // raw virtiogpu call
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -40,3 +40,8 @@ void free(void*);
 int atoi(const char*);
 int memcmp(const void *, const void *, uint);
 void *memcpy(void *, const void *, uint);
+// less raw virtiogpu calls
+void transfer_fb(void);
+uint32* acquire_fb(void);
+void release_fb(void);
+int holds_fb(void);

@@ -145,3 +145,27 @@ memcpy(void *dst, const void *src, uint n)
 {
   return memmove(dst, src, n);
 }
+
+void
+transfer_fb(void)
+{
+	gpucmd(0);
+}
+
+uint32*
+acquire_fb(void)
+{
+	return (uint32 *) gpucmd(1);
+}
+
+void
+release_fb(void)
+{
+	gpucmd(2);
+}
+
+int
+holds_fb(void)
+{
+	return (int) gpucmd(3);
+}
