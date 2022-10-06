@@ -4,6 +4,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "virtio.h"
+#include "param.h"
 #include "proc.h"
 
 /*
@@ -491,16 +492,43 @@ int acquire_fb(void) {
 		panic("acquire_fb called from null process");
 	// acquire GPU lock, try to see if we can acquire the framebuffer exclusively
 	acquire(&gpulock);
-	if (locked_pid == this_pid) {
-		
-	} else if (locked_pid == 0) { // not owned
+	int has_acquired = 0;
+	if (locked_pid == this_pid) { // already owned
+		has_acquired = 1;
+	} else if (locked_pid == NOT_LOCKED) { // not owned
 		locked_pid = this_pid;
+		has_acquired = 1;
 	} else { // someone else owns it
-		
+		has_acquired = 0;
 	}
+	release(&gpulock);
+	return has_acquired;
 }
-void release_fb(void);
-int holds_fb(void);
+
+// Make current process release the framebuffer
+// If the current process does not own it this is a no-op
+void release_fb(void) {
+	int this_pid = get_current_pid();
+	if (this_pid == 0)
+		panic("release_fb called from null process");
+	// try to release
+	acquire(&gpulock);
+	if (locked_pid == this_pid) locked_pid = NOT_LOCKED;
+	release(&gpulock);
+}
+
+// Returns 1 if current process holds the framebuffer, 0 otherwise
+int holds_fb(void) {
+	int this_pid = get_current_pid();
+	if (this_pid == 0)
+		panic("holds_fb called from null process");
+	// see who locked
+	int has_fb = 0;
+	acquire(&gpulock);
+	has_fb = locked_pid == this_pid;
+	release(&gpulock);
+	return has_fb;
+}
 
 int get_current_pid(void) {
 	struct proc * this_proc = myproc();
