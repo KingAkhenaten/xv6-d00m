@@ -51,9 +51,11 @@
 // this many virtio descriptors.
 // must be a power of two.
 #define NUM 8
+// the keyboard needs more descriptors
+#define KBD_NUM 64
 
 // a single descriptor, from the spec.
-struct virtq_desc {
+struct virtq_desc { // 16 bytes per descriptor for max of 256 descs/page
   uint64 addr;
   uint32 len;
   uint16 flags;
@@ -63,24 +65,37 @@ struct virtq_desc {
 #define VRING_DESC_F_WRITE 2 // device writes (vs read)
 
 // the (entire) avail ring, from the spec.
-struct virtq_avail {
+struct virtq_avail { // 22 bytes
   uint16 flags; // always zero
   uint16 idx;   // driver will write ring[idx] next
   uint16 ring[NUM]; // descriptor numbers of chain heads
   uint16 unused;
 };
+// one for the keyboard since NUM is baked in
+struct virtq_avail_kbd {
+  uint16 flags; // always zero
+  uint16 idx;   // driver will write ring[idx] next
+  uint16 ring[KBD_NUM]; // descriptor numbers of chain heads
+  uint16 unused;
+};
 
 // one entry in the "used" ring, with which the
 // device tells the driver about completed requests.
-struct virtq_used_elem {
+struct virtq_used_elem { // 8 bytes
   uint32 id;   // index of start of completed descriptor chain
   uint32 len;
 };
 
-struct virtq_used {
+struct virtq_used { // 68 bytes
   uint16 flags; // always zero
   uint16 idx;   // device increments when it adds a ring[] entry
   struct virtq_used_elem ring[NUM];
+};
+
+struct virtq_used_kbd {
+  uint16 flags; // always zero
+  uint16 idx;   // device increments when it adds a ring[] entry
+  struct virtq_used_elem ring[KBD_NUM];
 };
 
 // these are specific to virtio block devices, e.g. disks,

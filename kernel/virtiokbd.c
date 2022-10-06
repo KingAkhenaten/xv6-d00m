@@ -8,22 +8,23 @@
 
 #define VIRTIO_MMIO_MAGIC_VALUE_EXPECTED 0x74726976
 #define V0(r) ((volatile uint32 *)(VIRTIO0 + (r)))
-#define V1(r) ((volatile uint32 *)(VIRTIO0 + (r)))
+#define V1(r) ((volatile uint32 *)(VIRTIO1 + (r)))
 #define V2(r) ((volatile uint32 *)(VIRTIO2 + (r)))
 
 // virtio structures
-// descriptor set
-// This is temporary while I figure out how this is supposed to work
+
+// EVENTQ - 64 entries, uses KBD_NUM
+// descriptor set - holds information mapping descriptors to the buffers address/length/flags virtio expects to read
 struct virtq_desc *eventq_desc;
-// available ring: kern -> dev
-struct virtq_avail *eventq_avail;
-// used ring: dev -> kern
-struct virtq_used *eventq_used;
+// available ring: kern -> dev - holds descriptor ids we have inserted
+struct virtq_avail_kbd *eventq_avail;
+// used ring: dev -> kern - holds descriptors kbd has given back
+struct virtq_used_kbd *eventq_used;
 
-
+// STATUSQ - 8 entries, uses NUM like everything else
 struct virtq_desc *statusq_desc;
-struct virtq_avail *statusq_avail;
-struct virtq_used *statusq_used;
+struct virtq_avail_kbd *statusq_avail;
+struct virtq_used_kbd *statusq_used;
 
 // last used entry read??
 // should be == or < the device's tracking
@@ -32,15 +33,15 @@ uint32 statusq_used_idx = 0;
 // lock for managing hart access to code and ISR await
 struct spinlock kbdlock;
 
-struct virtio_input_event input_event_array[64];
-char used_buffers[64] = { [0 ... 63] = 0};
+struct virtio_input_event input_event_array[KBD_NUM];
+char used_buffers[KBD_NUM] = { [0 ... (KBD_NUM-1)] = 0};
 
 // Function Delcarations
 //void probe_mmio(void);
 void kbd_bind_desc_and_fire(int);
 
 int find_available_buffer(void){
-	for (int i = 0; i < 64; i++){
+	for (int i = 0; i < KBD_NUM; i++){
 		if (used_buffers[i] == 0)
 			return i;
 	}
@@ -97,7 +98,7 @@ void init_virtiokbd(void) {
 	uint32 eventq_max = *V2(VIRTIO_MMIO_QUEUE_NUM_MAX);
 	if (eventq_max == 0)
 		panic("virtiokbd has no queue 0");
-	if (eventq_max < NUM)
+	if (eventq_max < KBD_NUM)
 		panic("virtiokbd max queue too short");
 
 	// allocate and zero queue memory
@@ -111,7 +112,7 @@ void init_virtiokbd(void) {
 	memset(eventq_desc, 0, PGSIZE);
 	
 	// Notify the device about the queue size
-	*V2(VIRTIO_MMIO_QUEUE_NUM) = NUM;
+	*V2(VIRTIO_MMIO_QUEUE_NUM) = KBD_NUM;
 	
 	// Write physical addresses to pointers
 	*V2(VIRTIO_MMIO_QUEUE_DESC_LOW) = (uint64)eventq_desc;
@@ -215,7 +216,7 @@ void init_virtiokbd(void) {
 	*/
 
 	// populate eventq with receive buffers
-	for (int desc_idx = 0; desc_idx < 63; desc_idx++){
+	for (int desc_idx = 0; desc_idx < KBD_NUM; desc_idx++){
 		// look for unused descriptor
 		int buffer_idx = find_available_buffer();
 		kbd_bind_desc_and_fire(buffer_idx);
@@ -239,11 +240,12 @@ void virtiokbd_isr(void) {
         while(eventq_used_idx != eventq_used->idx){
                 __sync_synchronize();
                 // descriptor that just finished - should be 0 since that is the only descriptor used
-                int id = eventq_used->ring[eventq_used_idx % NUM].id; // grab the descriptor ID out of the used ring
+                int id = eventq_used->ring[eventq_used_idx % KBD_NUM].id; // grab the descriptor ID out of the used ring
                 // handle this descriptor response that the virtiokbd driver will have written into 'response'
                 // all responses have no payload, only the status code
                 // if it is anything other than OK_NODATA something is wrong
-		printf("type=%d\tcode=%d\tvalue=%d\n", input_event_array[id].type
+		printf("id=%d type=%d\tcode=%d\tvalue=%d\n", id
+						     , input_event_array[id].type
 						     , input_event_array[id].code
 						     , input_event_array[id].value);
                 // go to next index
@@ -251,6 +253,8 @@ void virtiokbd_isr(void) {
         	// mark the buffer as free
 		used_buffers[id] = 0;
 		__sync_synchronize();
+		// push more buffers to keep the events rolling
+		kbd_bind_desc_and_fire(id);
 	}
 	release(&kbdlock);
 	printf("virtiokbd released the lock\n");
@@ -269,7 +273,7 @@ void kbd_bind_desc_and_fire(int desc_idx) {
         eventq_desc[desc_idx].next = 0; // no next
 
 	// ring setup
-        eventq_avail->ring[eventq_avail->idx % NUM] = desc_idx;
+        eventq_avail->ring[eventq_avail->idx % KBD_NUM] = desc_idx;
         __sync_synchronize();
         // signal that next entry exists
         eventq_avail->idx += 1;
