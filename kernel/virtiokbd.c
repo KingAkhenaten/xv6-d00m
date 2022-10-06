@@ -34,15 +34,15 @@ uint32 statusq_used_idx = 0;
 struct spinlock kbdlock;
 
 struct virtio_input_event input_event_array[KBD_NUM];
-char used_buffers[KBD_NUM] = { [0 ... (KBD_NUM-1)] = 0};
+char used_buffers_eventq[KBD_NUM] = { [0 ... (KBD_NUM-1)] = 0};
 
 // Function Delcarations
 //void probe_mmio(void);
-void kbd_bind_desc_and_fire(int);
+void kbd_bind_desc_and_fire_eventq(int);
 
-int find_available_buffer(void){
+int find_available_buffer_eventq(void){
 	for (int i = 0; i < KBD_NUM; i++){
-		if (used_buffers[i] == 0)
+		if (used_buffers_eventq[i] == 0)
 			return i;
 	}
 	return -1;
@@ -218,8 +218,8 @@ void init_virtiokbd(void) {
 	// populate eventq with receive buffers
 	for (int desc_idx = 0; desc_idx < KBD_NUM; desc_idx++){
 		// look for unused descriptor
-		int buffer_idx = find_available_buffer();
-		kbd_bind_desc_and_fire(buffer_idx);
+		int buffer_idx = find_available_buffer_eventq();
+		kbd_bind_desc_and_fire_eventq(buffer_idx);
 	}	
 }
 
@@ -251,21 +251,21 @@ void virtiokbd_isr(void) {
                 // go to next index
                 eventq_used_idx += 1;
         	// mark the buffer as free
-		used_buffers[id] = 0;
+		used_buffers_eventq[id] = 0;
 		__sync_synchronize();
 		// push more buffers to keep the events rolling
-		kbd_bind_desc_and_fire(id);
+		kbd_bind_desc_and_fire_eventq(id);
 	}
 	release(&kbdlock);
 	printf("virtiokbd released the lock\n");
 }
 
-void kbd_bind_desc_and_fire(int desc_idx) {
+void kbd_bind_desc_and_fire_eventq(int desc_idx) {
 
        	input_event_array[desc_idx].type = 0;
        	input_event_array[desc_idx].code = 0;
 	input_event_array[desc_idx].value = 0;
-	used_buffers[desc_idx] = 1;
+	used_buffers_eventq[desc_idx] = 1;
 
 	eventq_desc[desc_idx].addr = (uint64) &input_event_array[desc_idx];
         eventq_desc[desc_idx].len = sizeof(struct virtio_input_event);
