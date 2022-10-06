@@ -29,6 +29,9 @@
 #define VIRTIO_MMIO_DRIVER_DESC_HIGH	0x094
 #define VIRTIO_MMIO_DEVICE_DESC_LOW	0x0a0 // physical address for used ring, write-only
 #define VIRTIO_MMIO_DEVICE_DESC_HIGH	0x0a4
+#define VIRTIO_MMIO_DEVICE_CONFIG_SPACE 0x100 // Device-specific configuration space starts at the 
+					      // offset 0x100 and is accessed with byte alignment. 
+					      // Its meaning and size depend on the device and the driver.
 
 // status register bits, from qemu virtio_config.h
 #define VIRTIO_CONFIG_S_ACKNOWLEDGE	1
@@ -48,9 +51,11 @@
 // this many virtio descriptors.
 // must be a power of two.
 #define NUM 8
+// the keyboard needs more descriptors
+#define KBD_NUM 64
 
 // a single descriptor, from the spec.
-struct virtq_desc {
+struct virtq_desc { // 16 bytes per descriptor for max of 256 descs/page
   uint64 addr;
   uint32 len;
   uint16 flags;
@@ -60,24 +65,37 @@ struct virtq_desc {
 #define VRING_DESC_F_WRITE 2 // device writes (vs read)
 
 // the (entire) avail ring, from the spec.
-struct virtq_avail {
+struct virtq_avail { // 22 bytes
   uint16 flags; // always zero
   uint16 idx;   // driver will write ring[idx] next
   uint16 ring[NUM]; // descriptor numbers of chain heads
   uint16 unused;
 };
+// one for the keyboard since NUM is baked in
+struct virtq_avail_kbd {
+  uint16 flags; // always zero
+  uint16 idx;   // driver will write ring[idx] next
+  uint16 ring[KBD_NUM]; // descriptor numbers of chain heads
+  uint16 unused;
+};
 
 // one entry in the "used" ring, with which the
 // device tells the driver about completed requests.
-struct virtq_used_elem {
+struct virtq_used_elem { // 8 bytes
   uint32 id;   // index of start of completed descriptor chain
   uint32 len;
 };
 
-struct virtq_used {
+struct virtq_used { // 68 bytes
   uint16 flags; // always zero
   uint16 idx;   // device increments when it adds a ring[] entry
   struct virtq_used_elem ring[NUM];
+};
+
+struct virtq_used_kbd {
+  uint16 flags; // always zero
+  uint16 idx;   // device increments when it adds a ring[] entry
+  struct virtq_used_elem ring[KBD_NUM];
 };
 
 // these are specific to virtio block devices, e.g. disks,
@@ -216,4 +234,49 @@ struct virtio_gpu_resource_flush {
 	struct virtio_gpu_rect r; 
 	uint32 resource_id; 
 	uint32 padding; 
+};
+
+// virtiokbd
+struct virtio_input_event {
+	uint16 type;
+	uint16 code;
+	uint32 value;
+};
+
+enum virtio_input_config_select {
+  VIRTIO_INPUT_CFG_UNSET      = 0x00,
+  VIRTIO_INPUT_CFG_ID_NAME    = 0x01,
+  VIRTIO_INPUT_CFG_ID_SERIAL  = 0x02,
+  VIRTIO_INPUT_CFG_ID_DEVIDS  = 0x03,
+  VIRTIO_INPUT_CFG_PROP_BITS  = 0x10,
+  VIRTIO_INPUT_CFG_EV_BITS    = 0x11,
+  VIRTIO_INPUT_CFG_ABS_INFO   = 0x12,
+};
+
+struct virtio_input_absinfo {
+  uint32  min;
+  uint32  max;
+  uint32  fuzz;
+  uint32  flat;
+  uint32  res;
+};
+
+struct virtio_input_devids {
+  uint16  bustype;
+  uint16  vendor;
+  uint16  product;
+  uint16  version;
+};
+
+struct virtio_input_config {
+  uint8    select;
+  uint8    subsel;
+  uint8    size;
+  uint8    reserved[5];
+  union {
+    char string[128];
+    uint8   bitmap[128];
+    struct virtio_input_absinfo abs;
+    struct virtio_input_devids ids;
+  } u;
 };
