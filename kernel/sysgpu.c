@@ -1,6 +1,10 @@
 #include "types.h"
+#include "param.h"
 #include "riscv.h"
+#include "memlayout.h"
 #include "defs.h"
+#include "spinlock.h"
+#include "proc.h"
 
 /*
 Syscall support for the virtiogpu framebuffer
@@ -27,12 +31,27 @@ uint64 sys_gpucmd(void) {
 			{
 				int acquire = acquire_fb();
 				if (acquire == 0) return 0;
-				return (uint64) &framebuffer;
+				// we have the framebuffer, now make the PTE
+				struct proc * this_proc = myproc();
+				// Hope this works!
+				printf("FB kernva %p userva %p", &framebuffer, FRAMEBUFFER);
+				int success = mappages(this_proc->pagetable,FRAMEBUFFER,64*PGSIZE,(uint64) &framebuffer,PTE_R | PTE_W | PTE_U);
+				if (success == -1) { // This returns zero on success!
+					printf("Mapping failed\n");
+					release_fb();
+					return 0;
+				}
+				return (uint64) FRAMEBUFFER; // This is the *userspace* pointer to the kernelspace framebuffer
 			}
 		case 2:
 			// Call 2 - release exclusive access and unmap framebuffer from memory, returns 0
-			release_fb();
-			return (uint64) 0;
+			{
+				struct proc * this_proc = myproc();
+				uvmunmap(this_proc->pagetable,FRAMEBUFFER,64,0);
+				printf("Mapping unmapped\n");
+				release_fb();
+				return (uint64) 0;
+			}
 		case 3:
 			// Call 3 - test if current process owns the framebuffer, returns 0 or 1
 			return (uint64) holds_fb();

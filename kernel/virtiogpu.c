@@ -43,11 +43,9 @@ uint32 used_idx = 0;
 struct spinlock gpulock;
 // this is it- the magic framebuffer
 // to clarify, this is our local copy that we upload to the host
-#define WIDTH 320
-#define HEIGHT 200
-
 // Has to be page-aligned so PTEs work. GCC extension.
-uint32 framebuffer[WIDTH * HEIGHT] __attribute__((aligned (PGSIZE)));
+// See defs.h for width and height.
+uint32 framebuffer[FRAMEBUFFER_WIDTH * FRAMEBUFFER_HEIGHT] __attribute__((aligned (PGSIZE)));
 
 // structs used for requests
 // these three are ceremonial stuff run once for making the framebuffer on the hypervisor, binding it to memory
@@ -263,9 +261,9 @@ void create_device_fb(void) {
 	acquire(&gpulock);
 	request_inflight = 1;
 	// fill framebuffer with red to make debugging easier
-	for (uint32 i = 0; i < WIDTH * HEIGHT; i++) {
-		uint32 y = i / WIDTH; // green
-		uint32 x = i % WIDTH; // red
+	for (uint32 i = 0; i < FRAMEBUFFER_WIDTH * FRAMEBUFFER_HEIGHT; i++) {
+		uint32 y = i / FRAMEBUFFER_WIDTH; // green
+		uint32 x = i % FRAMEBUFFER_WIDTH; // red
 		framebuffer[i] = 0x000000FF | (x & 0xFF) << 8 | (y & 0xFF) << 16; // BGRA order
 	}
 
@@ -292,7 +290,7 @@ void attach_fb(void) {
 	req->req.resource_id = 666; // should not matter what is here theoretically as long as it is consistent
 	req->req.nr_entries = 1; // ALWAYS 1. Never anything else.
 	req->entry.addr = (uint64) &framebuffer;
-	req->entry.length = WIDTH * HEIGHT * 4;
+	req->entry.length = FRAMEBUFFER_WIDTH * FRAMEBUFFER_HEIGHT * 4;
 	req->entry.padding = 0;
 
 	bind_desc_and_fire(req,sizeof(struct virtio_gpu_resource_attach_backing_singular));
@@ -311,8 +309,8 @@ void config_scanout(void) {
 	req->resource_id = 666; // should not matter what is here theoretically as long as it is consistent
 	req->r.x = 0;
 	req->r.y = 0;
-	req->r.height = HEIGHT;
-	req->r.width = WIDTH;
+	req->r.height = FRAMEBUFFER_HEIGHT;
+	req->r.width = FRAMEBUFFER_WIDTH;
 	
 	bind_desc_and_fire(req,sizeof(struct virtio_gpu_set_scanout));
 	printf("config_scanout ends\n");
@@ -329,8 +327,8 @@ void transfer_fb(void) {
 	req->resource_id = 666; // should not matter what is here theoretically as long as it is consistent
 	req->r.x = 0;
 	req->r.y = 0;
-	req->r.height = HEIGHT;
-	req->r.width = WIDTH;
+	req->r.height = FRAMEBUFFER_HEIGHT;
+	req->r.width = FRAMEBUFFER_WIDTH;
 	req->offset = 0; // whole fb transfer so no meaningful offset
 	req->padding = 0; // just to be safe
 	
@@ -350,8 +348,8 @@ void flush_resource(void) {
 	req->resource_id = 666; // should not matter what is here theoretically as long as it is consistent
 	req->r.x = 0;
 	req->r.y = 0;
-	req->r.height = HEIGHT;
-	req->r.width = WIDTH;
+	req->r.height = FRAMEBUFFER_HEIGHT;
+	req->r.width = FRAMEBUFFER_WIDTH;
 	req->padding = 0; // again, to be safe
 	
 	bind_desc_and_fire(req,sizeof(struct virtio_gpu_resource_flush));
@@ -407,8 +405,8 @@ void transfer_fb_us(void) {
 	req->resource_id = 666; // should not matter what is here theoretically as long as it is consistent
 	req->r.x = 0;
 	req->r.y = 0;
-	req->r.height = HEIGHT;
-	req->r.width = WIDTH;
+	req->r.height = FRAMEBUFFER_HEIGHT;
+	req->r.width = FRAMEBUFFER_WIDTH;
 	req->offset = 0; // whole fb transfer so no meaningful offset
 	req->padding = 0; // just to be safe
 	
@@ -428,8 +426,8 @@ void flush_resource_us(void) {
 	req->resource_id = 666; // should not matter what is here theoretically as long as it is consistent
 	req->r.x = 0;
 	req->r.y = 0;
-	req->r.height = HEIGHT;
-	req->r.width = WIDTH;
+	req->r.height = FRAMEBUFFER_HEIGHT;
+	req->r.width = FRAMEBUFFER_WIDTH;
 	req->padding = 0; // again, to be safe
 	
 	bind_desc_and_fire_us(req,sizeof(struct virtio_gpu_resource_flush));

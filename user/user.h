@@ -41,6 +41,9 @@ int atoi(const char*);
 int memcmp(const void *, const void *, uint);
 void *memcpy(void *, const void *, uint);
 // less raw virtiogpu calls
+// FB_WIDTH/HEIGHT have kernel counterparts, keep them the same
+#define FB_WIDTH 320
+#define FB_HEIGHT 200
 void transfer_fb(void);
 uint32* acquire_fb(void);
 void release_fb(void);

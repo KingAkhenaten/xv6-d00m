@@ -188,6 +188,8 @@ void            virtio_disk_intr(void);
 // virtiogpu.c
 void            init_virtiogpu(void);
 void            virtiogpu_isr(void); // interrupt service routine for virtio1
+#define         FRAMEBUFFER_WIDTH 320
+#define         FRAMEBUFFER_HEIGHT 200
 // virtiokbd.c
 void            init_virtiokbd(void);
 void            virtiokbd_isr(void); // interrupt service routine for virtio2

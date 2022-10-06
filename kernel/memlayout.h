@@ -71,6 +71,8 @@
 //   fixed-size stack
 //   expandable heap
 //   ...
+//   FRAMEBUFFER (where the framebuffer will go in user address space when PTEs modified)
 //   TRAPFRAME (p->trapframe, used by the trampoline)
 //   TRAMPOLINE (the same page as in the kernel)
 #define TRAPFRAME (TRAMPOLINE - PGSIZE)
+#define FRAMEBUFFER (TRAPFRAME - PGSIZE * 64)
