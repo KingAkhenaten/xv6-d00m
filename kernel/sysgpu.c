@@ -37,6 +37,7 @@ uint64 sys_gpucmd(void) {
 				printf("FB kernva %p userva %p", &framebuffer, FRAMEBUFFER);
 				// The complement of mappages is.... uvmunmap. There is no unmappages, nor is there a uvmmap.
 				// The two functions also have different requirements for alignment and use different size units...
+				// edit: apparently this oddity is also used in proc.c so there's precedent here. Leaving it as is.
 				int success = mappages(this_proc->pagetable,FRAMEBUFFER,64*PGSIZE,(uint64) &framebuffer,PTE_R | PTE_W | PTE_U);
 				if (success == -1) { // This returns zero on success!
 					printf("Mapping failed\n");

@@ -75,4 +75,5 @@
 //   TRAPFRAME (p->trapframe, used by the trampoline)
 //   TRAMPOLINE (the same page as in the kernel)
 #define TRAPFRAME (TRAMPOLINE - PGSIZE)
+// 64 pages = 262144 bytes, just over 320x200x4 = 256000
 #define FRAMEBUFFER (TRAPFRAME - PGSIZE * 64)
