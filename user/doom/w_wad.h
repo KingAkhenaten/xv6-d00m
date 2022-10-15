@@ -20,10 +20,7 @@
 #ifndef __W_WAD__
 #define __W_WAD__
 
-#include "kernel/types.h"
-#include "kernel/stat.h"
-#include "kernel/fcntl.h"
-#include "user/user.h"
+#include "xv6.h"
 
 #include "doomtype.h"
 #include "d_mode.h"

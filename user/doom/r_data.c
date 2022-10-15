@@ -17,10 +17,7 @@
 //	generation of lookups, caching, retrieval by name.
 //
 
-#include "kernel/types.h"
-#include "kernel/stat.h"
-#include "kernel/fcntl.h"
-#include "user/user.h"
+#include "xv6.h"
 
 #include "deh_main.h"
 #include "i_swap.h"

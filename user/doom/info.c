@@ -18,10 +18,7 @@
 //	This one is the original DOOM version, preserved.
 //
 
-#include "kernel/types.h"
-#include "kernel/stat.h"
-#include "kernel/fcntl.h"
-#include "user/user.h"
+#include "xv6.h"
 
 // Data.
 #include "sounds.h"

@@ -24,10 +24,7 @@
 #ifndef __Z_ZONE__
 #define __Z_ZONE__
 
-#include "kernel/types.h"
-#include "kernel/stat.h"
-#include "kernel/fcntl.h"
-#include "user/user.h"
+#include "xv6.h"
 
 //
 // ZONE MEMORY

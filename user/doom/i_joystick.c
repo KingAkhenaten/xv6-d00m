@@ -20,10 +20,7 @@
 #include "SDL_joystick.h"
 #endif
 
-#include "kernel/types.h"
-#include "kernel/stat.h"
-#include "kernel/fcntl.h"
-#include "user/user.h"
+#include "xv6.h"
 
 #include "doomtype.h"
 #include "d_event.h"

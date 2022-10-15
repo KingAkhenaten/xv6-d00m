@@ -17,10 +17,7 @@
 //	all OS independend parts.
 //
 
-#include "kernel/types.h"
-#include "kernel/stat.h"
-#include "kernel/fcntl.h"
-#include "user/user.h"
+#include "xv6.h"
 
 #include "doomfeatures.h"
 

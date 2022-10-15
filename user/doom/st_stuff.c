@@ -20,10 +20,7 @@
 
 
 
-#include "kernel/types.h"
-#include "kernel/stat.h"
-#include "kernel/fcntl.h"
-#include "user/user.h"
+#include "xv6.h"
 
 #include "i_system.h"
 #include "i_video.h"

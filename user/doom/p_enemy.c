@@ -18,10 +18,7 @@
 //	that are associated with states/frames. 
 //
 
-#include "kernel/types.h"
-#include "kernel/stat.h"
-#include "kernel/fcntl.h"
-#include "user/user.h"
+#include "xv6.h"
 
 #include "m_random.h"
 #include "i_system.h"

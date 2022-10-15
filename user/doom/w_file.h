@@ -20,10 +20,7 @@
 #ifndef __W_FILE__
 #define __W_FILE__
 
-#include "kernel/types.h"
-#include "kernel/stat.h"
-#include "kernel/fcntl.h"
-#include "user/user.h"
+#include "xv6.h"
 #include "doomtype.h"
 
 typedef struct _wad_file_s wad_file_t;

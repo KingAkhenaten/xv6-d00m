@@ -1,14 +1,10 @@
 #ifndef DOOM_GENERIC
 #define DOOM_GENERIC
 
-#include "kernel/types.h"
-#include "kernel/stat.h"
-#include "kernel/fcntl.h"
-#include "user/user.h"
+#include "xv6.h"
 
 #define DOOMGENERIC_RESX 320
 #define DOOMGENERIC_RESY 200
-
 
 extern uint32_t* DG_ScreenBuffer;
 
