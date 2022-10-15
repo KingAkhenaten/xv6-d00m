@@ -109,6 +109,108 @@ $U/_forktest: $U/forktest.o $(ULIB)
 	$(LD) $(LDFLAGS) -N -e main -Ttext 0 -o $U/_forktest $U/forktest.o $U/ulib.o $U/usys.o
 	$(OBJDUMP) -S $U/_forktest > $U/forktest.asm
 
+# Doom needs it's own special building, because it is Doom, not a single-file program
+# Getting the makefile to just work *normally* is hell on earth
+# Doom engine internal
+DOOM_OBJS = \
+	$U/doom/am_map.o \
+	$U/doom/d_event.o \
+	$U/doom/d_items.o \
+	$U/doom/d_iwad.o \
+	$U/doom/d_loop.o \
+	$U/doom/d_main.o \
+	$U/doom/d_mode.o \
+	$U/doom/d_net.o \
+	$U/doom/doomdef.o \
+	$U/doom/doomgeneric.o \
+	$U/doom/doomgeneric_sdl.o \
+	$U/doom/doomgeneric_soso.o \
+	$U/doom/doomgeneric_sosox.o \
+	$U/doom/doomgeneric_win.o \
+	$U/doom/doomgeneric_xlib.o \
+	$U/doom/doomstat.o \
+	$U/doom/dstrings.o \
+	$U/doom/dummy.o \
+	$U/doom/f_finale.o \
+	$U/doom/f_wipe.o \
+	$U/doom/g_game.o \
+	$U/doom/gusconf.o \
+	$U/doom/hu_lib.o \
+	$U/doom/hu_stuff.o \
+	$U/doom/i_cdmus.o \
+	$U/doom/icon.o \
+	$U/doom/i_endoom.o \
+	$U/doom/i_input.o \
+	$U/doom/i_joystick.o \
+	$U/doom/i_main.o \
+	$U/doom/info.o \
+	$U/doom/i_scale.o \
+	$U/doom/i_sound.o \
+	$U/doom/i_system.o \
+	$U/doom/i_timer.o \
+	$U/doom/i_video.o \
+	$U/doom/m_argv.o \
+	$U/doom/m_bbox.o \
+	$U/doom/m_cheat.o \
+	$U/doom/m_config.o \
+	$U/doom/m_controls.o \
+	$U/doom/memio.o \
+	$U/doom/m_fixed.o \
+	$U/doom/m_menu.o \
+	$U/doom/m_misc.o \
+	$U/doom/m_random.o \
+	$U/doom/p_ceilng.o \
+	$U/doom/p_doors.o \
+	$U/doom/p_enemy.o \
+	$U/doom/p_floor.o \
+	$U/doom/p_inter.o \
+	$U/doom/p_lights.o \
+	$U/doom/p_map.o \
+	$U/doom/p_maputl.o \
+	$U/doom/p_mobj.o \
+	$U/doom/p_plats.o \
+	$U/doom/p_pspr.o \
+	$U/doom/p_saveg.o \
+	$U/doom/p_setup.o \
+	$U/doom/p_sight.o \
+	$U/doom/p_spec.o \
+	$U/doom/p_switch.o \
+	$U/doom/p_telept.o \
+	$U/doom/p_tick.o \
+	$U/doom/p_user.o \
+	$U/doom/r_bsp.o \
+	$U/doom/r_data.o \
+	$U/doom/r_draw.o \
+	$U/doom/r_main.o \
+	$U/doom/r_plane.o \
+	$U/doom/r_segs.o \
+	$U/doom/r_sky.o \
+	$U/doom/r_things.o \
+	$U/doom/sha1.o \
+	$U/doom/sounds.o \
+	$U/doom/s_sound.o \
+	$U/doom/statdump.o \
+	$U/doom/st_lib.o \
+	$U/doom/st_stuff.o \
+	$U/doom/tables.o \
+	$U/doom/v_video.o \
+	$U/doom/w_checksum.o \
+	$U/doom/w_file.o \
+	$U/doom/w_file_stdc.o \
+	$U/doom/wi_stuff.o \
+	$U/doom/w_main.o \
+	$U/doom/w_wad.o \
+	$U/doom/z_zone.o
+
+$U/doom/%.o: $U/doom/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+#Doom xv6 launcher
+$U/_doom: $U/doom.o $(ULIB) $(DOOM_OBJS)
+	$(LD) $(LDFLAGS) -T $U/user.ld -o $@ $^
+	$(OBJDUMP) -S $@ > $U/doom.asm
+	$(OBJDUMP) -t $@ | sed '1,/SYMBOL TABLE/d; s/ .* / /; /^$$/d' > $U/doom.sym
+
 mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
 	gcc -Werror -Wall -I. -o mkfs/mkfs mkfs/mkfs.c
 
@@ -148,6 +250,7 @@ fs.img: mkfs/mkfs README $(UPROGS)
 clean: 
 	rm -f *.tex *.dvi *.idx *.aux *.log *.ind *.ilg \
 	*/*.o */*.d */*.asm */*.sym \
+	$U/doom/*.o $U/doom/*.d \
 	$U/initcode $U/initcode.out $K/kernel fs.img \
 	mkfs/mkfs .gdbinit \
         $U/usys.S \
