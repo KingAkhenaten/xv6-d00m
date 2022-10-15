@@ -166,10 +166,10 @@ void I_PrintDivider(void)
 
     for (i=0; i<75; ++i)
     {
-        putchar('=');
+        printf("=");
     }
 
-    putchar('\n');
+    printf("\n");
 }
 
 void I_PrintStartupBanner(char *gamedescription)
@@ -318,20 +318,21 @@ static int ZenityErrorBox(char *message)
     {
         return 0;
     }
+	return 0;
+	// the below code can never run anyway due to the above always returning zero
+    // escaped_message = EscapeShellString(message);
 
-    escaped_message = EscapeShellString(message);
+    // errorboxpath_size = strlen(ZENITY_BINARY) + strlen(escaped_message) + 19;
+    // errorboxpath = malloc(errorboxpath_size);
+    // M_snprintf(errorboxpath, errorboxpath_size, "%s --error --text=%s",
+    //            ZENITY_BINARY, escaped_message);
 
-    errorboxpath_size = strlen(ZENITY_BINARY) + strlen(escaped_message) + 19;
-    errorboxpath = malloc(errorboxpath_size);
-    M_snprintf(errorboxpath, errorboxpath_size, "%s --error --text=%s",
-               ZENITY_BINARY, escaped_message);
+    // result = system(errorboxpath);
 
-    result = system(errorboxpath);
+    // free(errorboxpath);
+    // free(escaped_message);
 
-    free(errorboxpath);
-    free(escaped_message);
-
-    return result;
+    // return result;
 }
 
 #endif /* !defined(_WIN32) && !defined(__MACOSX__) */
@@ -368,7 +369,7 @@ void I_Error (char *error, ...)
     vfprintf(stderr, error, argptr);
     fprintf(stderr, "\n\n");
     va_end(argptr);
-    fflush(stderr);
+    // fflush(stderr);
 
     // Write a copy of the message into buffer.
     va_start(argptr, error);
