@@ -12,4 +12,8 @@ typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned int  uint32_t;
 typedef unsigned long uint64_t;
+// More things
+
+// Standard error, to placate *printf functions that use it
+extern int stderr;
 #endif

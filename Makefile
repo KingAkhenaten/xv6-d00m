@@ -113,6 +113,7 @@ $U/_forktest: $U/forktest.o $(ULIB)
 # Getting the makefile to just work *normally* is hell on earth
 # Doom engine internal
 DOOM_OBJS = \
+	$U/doom/xv6.c \
 	$U/doom/am_map.o \
 	$U/doom/d_event.o \
 	$U/doom/d_items.o \
@@ -200,7 +201,7 @@ DOOM_OBJS = \
 	$U/doom/wi_stuff.o \
 	$U/doom/w_main.o \
 	$U/doom/w_wad.o \
-	$U/doom/z_zone.o
+	$U/doom/z_zone.o \
 
 $U/doom/%.o: $U/doom/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
