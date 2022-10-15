@@ -16,9 +16,10 @@
 // memory.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/fcntl.h"
+#include "user/user.h"
 
 #include "memio.h"
 

@@ -14,7 +14,10 @@
 // GNU General Public License for more details.
 //
 
-#include <stdio.h>
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/fcntl.h"
+#include "user/user.h"
 
 #include "doomtype.h"
 #include "doomkeys.h"

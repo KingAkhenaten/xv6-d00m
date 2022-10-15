@@ -21,7 +21,10 @@
 
 #include "doomgeneric.h"
 
-#include <stdarg.h>
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/fcntl.h"
+#include "user/user.h"
 //#include <sys/time.h>
 //#include <unistd.h>
 

@@ -18,7 +18,10 @@
 
 //#include "config.h"
 
-#include <stdio.h>
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/fcntl.h"
+#include "user/user.h"
 
 //#include "doomtype.h"
 //#include "i_system.h"

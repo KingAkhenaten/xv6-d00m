@@ -15,8 +15,10 @@
 // DESCRIPTION:  none
 //
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/fcntl.h"
+#include "user/user.h"
 
 #include "i_sound.h"
 #include "i_system.h"

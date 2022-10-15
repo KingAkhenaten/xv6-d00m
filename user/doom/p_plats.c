@@ -16,7 +16,10 @@
 //	Plats (i.e. elevator platforms) code, raising/lowering.
 //
 
-#include <stdio.h>
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/fcntl.h"
+#include "user/user.h"
 
 #include "i_system.h"
 #include "z_zone.h"

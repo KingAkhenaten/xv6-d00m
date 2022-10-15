@@ -15,8 +15,10 @@
 //    Exit text-mode ENDOOM screen.
 //
 
-#include <stdio.h>
-#include <string.h>
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/fcntl.h"
+#include "user/user.h"
 
 #include "config.h"
 #include "doomtype.h"

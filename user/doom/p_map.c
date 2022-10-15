@@ -17,8 +17,10 @@
 //	Shooting and aiming.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/fcntl.h"
+#include "user/user.h"
 
 #include "deh_misc.h"
 

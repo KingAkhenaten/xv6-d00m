@@ -17,7 +17,10 @@
 //	Switches, buttons. Two-state animation. Exits.
 //
 
-#include <stdio.h>
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/fcntl.h"
+#include "user/user.h"
 
 #include "i_system.h"
 #include "deh_main.h"

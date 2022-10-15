@@ -16,10 +16,10 @@
 //     to the IWAD type.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
-#include <string.h>
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/fcntl.h"
+#include "user/user.h"
 
 #include "config.h"
 #include "deh_str.h"
