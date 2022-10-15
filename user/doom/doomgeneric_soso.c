@@ -1,3 +1,5 @@
+// Keep for reference, but render it inactive
+#ifdef _THIS_SHOULD_NOT_BE_DEFINED_
 //doomgeneric for soso os
 
 #include "doomkeys.h"
@@ -258,3 +260,4 @@ int DG_GetKey(int* pressed, unsigned char* doomKey)
 void DG_SetWindowTitle(const char * title)
 {
 }
+#endif

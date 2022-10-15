@@ -1,3 +1,5 @@
+// Keep for reference, but render it inactive
+#ifdef _THIS_SHOULD_NOT_BE_DEFINED_
 #include "doomkeys.h"
 
 #include "doomgeneric.h"
@@ -195,3 +197,4 @@ void DG_SetWindowTitle(const char * title)
 		SetWindowTextA(s_Hwnd, title);
 	}
 }
+#endif

@@ -1,3 +1,5 @@
+// Keep for reference, but render it inactive
+#ifdef _THIS_SHOULD_NOT_BE_DEFINED_
 #include "doomkeys.h"
 
 #include "doomgeneric.h"
@@ -212,3 +214,4 @@ void DG_SetWindowTitle(const char * title)
         XChangeProperty(s_Display, s_Window, XA_WM_NAME, XA_STRING, 8, PropModeReplace, title, strlen(title));
     }
 }
+#endif
