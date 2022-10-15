@@ -20,8 +20,10 @@
 #ifndef __M_MISC__
 #define __M_MISC__
 
-#include <stdio.h>
-#include <stdarg.h>
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/fcntl.h"
+#include "user/user.h"
 
 #include "doomtype.h"
 

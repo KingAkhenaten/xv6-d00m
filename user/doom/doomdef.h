@@ -20,8 +20,10 @@
 #ifndef __DOOMDEF__
 #define __DOOMDEF__
 
-#include <stdio.h>
-#include <string.h>
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/fcntl.h"
+#include "user/user.h"
 
 #include "doomtype.h"
 #include "i_timer.h"

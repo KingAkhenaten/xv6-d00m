@@ -1,8 +1,10 @@
 #ifndef DOOM_GENERIC
 #define DOOM_GENERIC
 
-#include <stdlib.h>
-#include <stdint.h>
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/fcntl.h"
+#include "user/user.h"
 
 #define DOOMGENERIC_RESX 320
 #define DOOMGENERIC_RESY 200

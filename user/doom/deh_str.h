@@ -18,7 +18,10 @@
 #ifndef DEH_STR_H
 #define DEH_STR_H
 
-#include <stdio.h>
+#include "kernel/types.h"
+#include "kernel/stat.h"
+#include "kernel/fcntl.h"
+#include "user/user.h"
 
 #include "doomfeatures.h"
 
