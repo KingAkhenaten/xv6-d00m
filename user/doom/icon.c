@@ -1,3 +1,5 @@
+// Keep for reference, but render it inactive
+#ifdef _THIS_SHOULD_NOT_BE_DEFINED_
 static int icon_w = 32;
 static int icon_h = 32;
 
@@ -260,3 +262,4 @@ static unsigned char icon_data[] = {
     0x00,0x00,0x00,  0x00,0x00,0x00,  0x00,0x00,0x00,  0x00,0x00,0x00,  
     
 };
+#endif
