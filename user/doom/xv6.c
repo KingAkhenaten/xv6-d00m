@@ -1,7 +1,11 @@
 #include "xv6.h"
 // Shim implementations of things Doom needs but xv6 does not have go here
-extern int stderr = 1; // cursed
+// Some implementations are done right, others may be cheated only to the extent Doom calls them
+// Yet more calls may just be edited out on the Doom side to avoid having to implement them
 
+// stdio.h
+
+extern int stderr = 1; // cursed
 // Acts like snprintf, but cheats where it can get away with it
 // Based on the xv6 kernel's printf implementation
 int snprintf(const char * buf, size_t bufsz, const char * restrict format, ... ) {
@@ -49,4 +53,40 @@ int snprintf(const char * buf, size_t bufsz, const char * restrict format, ... )
 		}
 	}
 	va_end(va);
+}
+
+// string.h
+
+int isspace(int c) {
+	// 0x09 - horizontal tab
+	// 0x20 - space
+	// 0x0A - linefeed
+	// 0x0B - vertical tab
+	// 0x0C - form feed
+	// 0x0D - carriage return
+	return c == 0x09 || c == 0x20 || c == 0x0A || c == 0x0B || c == 0x0C || c == 0x0D;
+}
+
+int toupper(int c) {
+	if (c >= 0x61 && c <= 0x7A) {
+		// in lowercase range
+		// subtract hex 0x20 to get into uppercase range
+		return c - 0x20;
+	}
+	// do nothing otherwise
+	return c;
+}
+
+char * strdup(const char * str) {
+	char * dupstr = malloc(strlen(str) + 1);
+	if (dupstr == NULL) return NULL; // no memory
+	uint s = 0;
+	// iterate until we see a null byte
+	while (str[s] != '\0') {
+		dupstr[s] = str[s];
+		s++;
+	}
+	// we are at the null byte in source string, write to copy
+	dupstr[s] == '\0';
+	return dupstr;
 }

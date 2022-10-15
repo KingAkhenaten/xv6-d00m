@@ -29,10 +29,7 @@
  *  8498 3E44 1C3B D26E BAAE  4AA1 F951 29E5 E546 70F1
  */
 
-#include "kernel/types.h"
-#include "kernel/stat.h"
-#include "kernel/fcntl.h"
-#include "user/user.h"
+#include "xv6.h"
 
 #include "i_swap.h"
 #include "sha1.h"

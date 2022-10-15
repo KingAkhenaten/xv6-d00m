@@ -11,10 +11,16 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <limits.h>
+// I am not sure if these are fully freestanding but I'm going to try it anyway
 #include <math.h>
 
 // Standard error, to placate *printf functions that use it
 extern int stderr;
+#define NULL ((void *)0)
 // snprintf from stdio.h
 int snprintf(const char * buf, size_t bufsz, const char * restrict format, ... );
+// string.h
+int isspace(int c);
+int toupper(int c);
+char * strdup(char * str);
 #endif
