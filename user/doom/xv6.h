@@ -23,4 +23,5 @@ int snprintf(const char * buf, size_t bufsz, const char * restrict format, ... )
 int isspace(int c);
 int toupper(int c);
 char * strdup(char * str);
+char * strrchr(const char * str, char c);
 #endif

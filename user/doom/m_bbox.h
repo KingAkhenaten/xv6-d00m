@@ -19,7 +19,7 @@
 
 #ifndef __M_BBOX__
 #define __M_BBOX__
-
+#include "xv6.h"
 #include "m_fixed.h"
 
 

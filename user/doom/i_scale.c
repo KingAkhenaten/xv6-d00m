@@ -392,7 +392,7 @@ static void I_InitSquashTable(byte *palette)
     printf("I_InitSquashTable: Generating lookup table..");
     // fflush(stdout);
     half_stretch_table = GenerateStretchTable(palette, 50);
-    puts("");
+    // puts("");
 }
 
 // Destroy the scaling lookup tables. This should only ever be called

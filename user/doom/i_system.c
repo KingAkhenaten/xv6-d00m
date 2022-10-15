@@ -19,17 +19,6 @@
 
 #include "xv6.h"
 
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#else
-#include <unistd.h>
-#endif
-
-#ifdef ORIGCODE
-#include "SDL.h"
-#endif
-
 #include "config.h"
 
 #include "deh_str.h"
@@ -165,9 +154,10 @@ void I_PrintBanner(char *msg)
     int spaces = 35 - (strlen(msg) / 2);
 
     for (i=0; i<spaces; ++i)
-        putchar(' ');
-
-    puts(msg);
+		printf(" ");
+        // putchar(' ');
+	printf(msg);
+    // puts(msg);
 }
 
 void I_PrintDivider(void)
@@ -267,7 +257,8 @@ void I_Quit (void)
 
 static int ZenityAvailable(void)
 {
-    return system(ZENITY_BINARY " --help >/dev/null 2>&1") == 0;
+	return 0; // xv6
+    // return system(ZENITY_BINARY " --help >/dev/null 2>&1") == 0;
 }
 
 // Escape special characters in the given string so that they can be
