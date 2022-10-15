@@ -138,6 +138,7 @@ UPROGS=\
 	$U/_motd\
 	$U/_ed\
 	$U/_gputest\
+	$U/_doom
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
