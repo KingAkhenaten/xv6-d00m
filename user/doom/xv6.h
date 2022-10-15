@@ -22,8 +22,10 @@ int snprintf(const char * buf, size_t bufsz, const char * restrict format, ... )
 // string.h
 int isspace(int c);
 int toupper(int c);
-char * strdup(char * str);
+char * strdup(const char * str);
 char * strrchr(const char * str, char c);
 // stdlib.h
 int abs(int x);
+void * realloc(void * ptr, size_t newsz);
+void * calloc(size_t num, size_t size);
 #endif

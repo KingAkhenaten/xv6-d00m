@@ -16,6 +16,9 @@
 //	WAD I/O functions.
 //
 
+// Note: xv6 has read/write, but no syscall to seek in that file.
+// Instead we push the entire WAD into RAM and handle seeking ourselves.
+
 #include "xv6.h"
 
 #include "m_misc.h"
@@ -25,7 +28,10 @@
 typedef struct
 {
     wad_file_t wad;
-    FILE *fstream;
+    // FILE *fstream;
+	int fd;
+	char * wad_data;
+	int wad_seek;
 } stdc_wad_file_t;
 
 extern wad_file_class_t stdc_wad_file;
@@ -33,11 +39,11 @@ extern wad_file_class_t stdc_wad_file;
 static wad_file_t *W_StdC_OpenFile(char *path)
 {
     stdc_wad_file_t *result;
-    FILE *fstream;
+    int fd;
 
-    fstream = fopen(path, "rb");
+    fd = open(path, O_RDONLY);
 
-    if (fstream == NULL)
+    if (fd == -1)
     {
         return NULL;
     }
@@ -47,9 +53,20 @@ static wad_file_t *W_StdC_OpenFile(char *path)
     result = Z_Malloc(sizeof(stdc_wad_file_t), PU_STATIC, 0);
     result->wad.file_class = &stdc_wad_file;
     result->wad.mapped = NULL;
-    result->wad.length = M_FileLength(fstream);
-    result->fstream = fstream;
-
+    result->wad.length = M_FileLength(fd);
+    result->fd = fd;
+	// allocate buffer
+	result->wad_data = malloc(result->wad.length);
+	if (result->wad_data == NULL) {
+		Z_Free(result);
+		return NULL;
+	}
+	// read everything
+	if (read(fd,result->wad_data,result->wad.length) != result->wad.length) {
+		free(result->wad_data);
+		Z_Free(result);
+		return NULL;
+	}
     return &result->wad;
 }
 
@@ -59,7 +76,8 @@ static void W_StdC_CloseFile(wad_file_t *wad)
 
     stdc_wad = (stdc_wad_file_t *) wad;
 
-    fclose(stdc_wad->fstream);
+    // fclose(stdc_wad->fstream);
+	close(stdc_wad->fd);
     Z_Free(stdc_wad);
 }
 
@@ -76,12 +94,14 @@ size_t W_StdC_Read(wad_file_t *wad, unsigned int offset,
 
     // Jump to the specified position in the file.
 
-    fseek(stdc_wad->fstream, offset, SEEK_SET);
+    // fseek(stdc_wad->fstream, offset, SEEK_SET);
+	stdc_wad->wad_seek = offset;
 
     // Read into the buffer.
 
-    result = fread(buffer, 1, buffer_len, stdc_wad->fstream);
-
+    // result = fread(buffer, 1, buffer_len, stdc_wad->fstream);
+	result = buffer_len;
+	memmove(buffer,&stdc_wad->wad_data[stdc_wad->wad_seek],buffer_len);
     return result;
 }
 

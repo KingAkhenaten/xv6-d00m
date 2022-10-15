@@ -97,3 +97,35 @@ int abs(int x) {
 	if (x < 0) return -x;
 	return x;
 }
+
+// Taken from umalloc.c
+// This is an ugly hack to get at the block size
+// Don't do this
+
+static union header {
+  	struct {
+    	union header *ptr;
+    	uint size;
+  	} s;
+	long x;
+};
+
+void * realloc(void * ptr, size_t newsz) {
+	// UGLY HACK
+	union header * alloc_header = (union header *)ptr - 1;
+	uint oldsz = alloc_header->s.size;
+	// END UGLY HACK
+	char * newblk = malloc(newsz);
+	if (newblk == NULL) return NULL;
+	memmove(newblk,ptr,oldsz);
+	free(ptr);
+	return newsz;
+}
+void * calloc(size_t num, size_t size) {
+	size_t blksz = num * size;
+	// check overflow of blksz
+	char * blk = malloc(blksz);
+	if (blk == NULL) return NULL;
+	memset(blk,0,blksz);
+	return blk;
+}

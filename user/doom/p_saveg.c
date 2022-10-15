@@ -35,7 +35,7 @@
 #define SAVEGAME_EOF 0x1d
 #define VERSIONSIZE 16 
 
-FILE *save_stream;
+int save_stream;
 int savegamelength;
 boolean savegame_error;
 
@@ -81,7 +81,7 @@ static byte saveg_read8(void)
 {
     byte result;
 
-    if (fread(&result, 1, 1, save_stream) < 1)
+    if (read(save_stream, &result, 1) == -1)
     {
         if (!savegame_error)
         {
@@ -97,7 +97,7 @@ static byte saveg_read8(void)
 
 static void saveg_write8(byte value)
 {
-    if (fwrite(&value, 1, 1, save_stream) < 1)
+    if (write(save_stream, &value, 1) == -1)
     {
         if (!savegame_error)
         {
