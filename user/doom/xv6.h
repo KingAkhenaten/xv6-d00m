@@ -6,14 +6,15 @@
 #include "kernel/stat.h"
 #include "kernel/fcntl.h"
 #include "user/user.h"
-
-// Typedefs Doom expects to exist, which are not identical to the ones xv6 uses
-typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-typedef unsigned int  uint32_t;
-typedef unsigned long uint64_t;
-// More things
+// Headers guaranteed to exist in freestanding (that is, no operating system) compiler implementations
+#include <stddef.h>
+#include <stdarg.h>
+#include <stdint.h>
+#include <limits.h>
+#include <math.h>
 
 // Standard error, to placate *printf functions that use it
 extern int stderr;
+// snprintf from stdio.h
+int snprintf(const char * buf, size_t bufsz, const char * restrict format, ... );
 #endif
