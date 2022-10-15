@@ -24,4 +24,6 @@ int isspace(int c);
 int toupper(int c);
 char * strdup(char * str);
 char * strrchr(const char * str, char c);
+// stdlib.h
+int abs(int x);
 #endif

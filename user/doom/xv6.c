@@ -90,3 +90,10 @@ char * strdup(const char * str) {
 	dupstr[s] == '\0';
 	return dupstr;
 }
+
+// stdlib.h
+
+int abs(int x) {
+	if (x < 0) return -x;
+	return x;
+}
