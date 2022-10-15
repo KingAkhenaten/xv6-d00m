@@ -49,44 +49,59 @@ void M_MakeDirectory(char *path)
 
 boolean M_FileExists(char *filename)
 {
-    FILE *fstream;
+    // FILE *fstream;
 
-    fstream = fopen(filename, "r");
+    // fstream = fopen(filename, "r");
 
-    if (fstream != NULL)
-    {
-        fclose(fstream);
-        return true;
-    }
-    else
-    {
-        // If we can't open because the file is a directory, the 
-        // "file" exists at least!
+    // if (fstream != NULL)
+    // {
+    //     fclose(fstream);
+    //     return true;
+    // }
+    // else
+    // {
+    //     // If we can't open because the file is a directory, the 
+    //     // "file" exists at least!
 
-        return errno == EISDIR;
-    }
+    //     return errno == EISDIR;
+    // }
+
+	// xv6
+	int fd;
+	fd = open(filename,O_RDONLY);
+	if (fd != -1) {
+		close(fd);
+		return true;
+	} else {
+		// assume it does not exist
+		return false;
+	}
 }
 
 //
 // Determine the length of an open file.
 //
 
-long M_FileLength(FILE *handle)
+long M_FileLength(int handle)
 { 
-    long savedpos;
-    long length;
+    // long savedpos;
+    // long length;
 
-    // save the current position in the file
-    savedpos = ftell(handle);
+    // // save the current position in the file
+    // savedpos = ftell(handle);
     
-    // jump to the end and find the length
-    fseek(handle, 0, SEEK_END);
-    length = ftell(handle);
+    // // jump to the end and find the length
+    // fseek(handle, 0, SEEK_END);
+    // length = ftell(handle);
 
-    // go back to the old location
-    fseek(handle, savedpos, SEEK_SET);
+    // // go back to the old location
+    // fseek(handle, savedpos, SEEK_SET);
 
-    return length;
+    // return length;
+
+	struct stat filestats;
+	fstat(handle, &filestats);
+	return filestats.size;
 }
 
 //
