@@ -377,7 +377,7 @@ static void I_InitStretchTables(byte *palette)
     stretch_tables[0] = GenerateStretchTable(palette, 20);
     printf(".."); // fflush(stdout);
     stretch_tables[1] = GenerateStretchTable(palette, 40);
-    puts("");
+    // puts("");
 }
 
 // Create 50%/50% table for 800x600 squash mode
