@@ -18,6 +18,13 @@ static void snputptr(char * buf, size_t bufsz, int * charbufidx, void * ptr);
 int snprintf(char * buf, size_t bufsz, const char * restrict format, ... ) {
 	va_list va; // varargs info
 	va_start(va, format); // initialise the varargs
+	vsnprintf(buf,bufsz,format,va);
+	va_end(va);
+	return 0;
+}
+
+// Acts like vsnprintf, same caveats as above
+int vsnprintf(char * buf, size_t bufsz, const char * restrict format, va_list va) {
 	int charbuf = 0; // index into buf, charbuf < bufsz
 	int charformat = 0; // index into format, should stop at the null char
 	// walk the format string
@@ -79,7 +86,6 @@ int snprintf(char * buf, size_t bufsz, const char * restrict format, ... ) {
 		}
 		
 	}
-	va_end(va);
 	return 0;
 }
 

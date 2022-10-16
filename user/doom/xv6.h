@@ -17,8 +17,9 @@
 // Standard error, to placate *printf functions that use it
 extern int stderr;
 #define NULL ((void *)0)
-// snprintf from stdio.h
+// stdio.h
 int snprintf(char * buf, size_t bufsz, const char * restrict format, ... );
+int vsnprintf(char * buf, size_t bufsz, const char * restrict format, va_list va);
 // string.h
 int isspace(int c);
 int toupper(int c);
