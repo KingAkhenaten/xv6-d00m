@@ -343,8 +343,6 @@ static int ZenityErrorBox(char *message)
 //
 
 static boolean already_quitting = false;
-// For some reason it isn't seen otherwise
-void vprintf(int fd, const char *fmt, va_list ap);
 
 void I_Error (char *error, ...)
 {
