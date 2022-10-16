@@ -18,7 +18,7 @@
 extern int stderr;
 #define NULL ((void *)0)
 // snprintf from stdio.h
-int snprintf(const char * buf, size_t bufsz, const char * restrict format, ... );
+int snprintf(char * buf, size_t bufsz, const char * restrict format, ... );
 // string.h
 int isspace(int c);
 int toupper(int c);

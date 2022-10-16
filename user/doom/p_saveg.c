@@ -36,6 +36,7 @@
 #define VERSIONSIZE 16 
 
 int save_stream;
+int save_pos; // added to avoid a ftell call xv6 lacks
 int savegamelength;
 boolean savegame_error;
 
@@ -90,8 +91,9 @@ static byte saveg_read8(void)
 
             savegame_error = true;
         }
-    }
-
+    } else {
+		save_pos++;
+	}
     return result;
 }
 
@@ -105,7 +107,9 @@ static void saveg_write8(byte value)
 
             savegame_error = true;
         }
-    }
+    } else {
+		save_pos++;
+	}
 }
 
 static short saveg_read16(void)
@@ -152,7 +156,8 @@ static void saveg_read_pad(void)
     int padding;
     int i;
 
-    pos = ftell(save_stream);
+    // pos = ftell(save_stream);
+	pos = save_pos;
 
     padding = (4 - (pos & 3)) & 3;
 
@@ -168,7 +173,8 @@ static void saveg_write_pad(void)
     int padding;
     int i;
 
-    pos = ftell(save_stream);
+    // pos = ftell(save_stream);
+	pos = save_pos;
 
     padding = (4 - (pos & 3)) & 3;
 

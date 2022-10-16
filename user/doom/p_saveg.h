@@ -56,6 +56,7 @@ void P_ArchiveSpecials (void);
 void P_UnArchiveSpecials (void);
 
 extern int save_stream;
+extern int save_pos;
 extern boolean savegame_error;
 
 
