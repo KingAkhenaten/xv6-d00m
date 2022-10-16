@@ -281,7 +281,7 @@ static int sgeti(const char * buf, size_t bufsz, int * charbufidx, int64_t * num
 		int64_t nextintegral = base * integral + ctoix(buf[*charbufidx]);
 		if (nextintegral < integral) {
 			// overflow! return what we have
-			*num = integral;
+			*num = negate? -integral : integral;
 			(*charbufidx)++; // advance has not happened yet so do so
 			return 1;
 		}
@@ -289,7 +289,7 @@ static int sgeti(const char * buf, size_t bufsz, int * charbufidx, int64_t * num
 		(*charbufidx)++;
 	}
 	// return value, charbufidx has advanced already
-	*num = integral;
+	*num = negate? -integral : integral;
 	return 1;
 }
 
