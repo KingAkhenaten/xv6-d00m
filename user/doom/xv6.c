@@ -5,7 +5,7 @@
 
 // stdio.h
 
-int stderr = 1; // cursed
+int stderr = 1; // Yes, this is wrong. But for compatibility...
 
 static void snputc(char * buf, size_t bufsz, int * charbufidx, int ch);
 static void snputs(char * buf, size_t bufsz, int * charbufidx, const char * str);

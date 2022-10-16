@@ -13,6 +13,8 @@
 #include <limits.h>
 // I am not sure if these are fully freestanding but I'm going to try it anyway
 #include <math.h>
+// Declaration for vprintf, which someone forgot to export in user.h
+void vprintf(int, const char *, va_list);
 
 // Standard error, to placate *printf functions that use it
 extern int stderr;

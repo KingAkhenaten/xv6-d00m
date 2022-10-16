@@ -343,6 +343,8 @@ static int ZenityErrorBox(char *message)
 //
 
 static boolean already_quitting = false;
+// For some reason it isn't seen otherwise
+void vprintf(int fd, const char *fmt, va_list ap);
 
 void I_Error (char *error, ...)
 {
@@ -366,7 +368,8 @@ void I_Error (char *error, ...)
     // Message first.
     va_start(argptr, error);
     //fprintf(stderr, "\nError: ");
-    vfprintf(stderr, error, argptr);
+    // vfprintf(stderr, error, argptr);
+	vprintf(stderr, error, argptr);
     fprintf(stderr, "\n\n");
     va_end(argptr);
     // fflush(stderr);
