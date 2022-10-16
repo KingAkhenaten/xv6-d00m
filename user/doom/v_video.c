@@ -863,7 +863,10 @@ void V_DrawMouseSpeedBox(int speed)
     // If the mouse is turned off or acceleration is turned off, don't
     // draw the box at all.
 
-    if (!usemouse || fabs(mouse_acceleration - 1) < 0.01)
+	// xv6 fabs hack
+	double mouse_accel2 = mouse_acceleration - 1;
+	if (mouse_accel2 < 0) mouse_accel2 = -mouse_accel2; // fabs(mouse_acceleration - 1)
+    if (!usemouse || mouse_accel2 < 0.01)
     {
         return;
     }

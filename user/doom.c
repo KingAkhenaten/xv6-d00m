@@ -1,7 +1,7 @@
 #include "kernel/types.h"
 #include "user/user.h"
 
+extern int doom_main(int argc, char ** argv);
 int main(int argc, char ** argv) {
-	printf("sorry nothing\n");
-	return 0;
+	return doom_main(argc,argv);
 }

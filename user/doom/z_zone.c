@@ -394,31 +394,31 @@ Z_DumpHeap
 
 
 
-// //
-// // Z_CheckHeap
-// //
-// void Z_CheckHeap (void)
-// {
-//     memblock_t*	block;
+//
+// Z_CheckHeap
+//
+void Z_CheckHeap (void)
+{
+    memblock_t*	block;
 	
-//     for (block = mainzone->blocklist.next ; ; block = block->next)
-//     {
-// 	if (block->next == &mainzone->blocklist)
-// 	{
-// 	    // all blocks have been hit
-// 	    break;
-// 	}
+    for (block = mainzone->blocklist.next ; ; block = block->next)
+    {
+	if (block->next == &mainzone->blocklist)
+	{
+	    // all blocks have been hit
+	    break;
+	}
 	
-// 	if ( (byte *)block + block->size != (byte *)block->next)
-// 	    I_Error ("Z_CheckHeap: block size does not touch the next block\n");
+	if ( (byte *)block + block->size != (byte *)block->next)
+	    I_Error ("Z_CheckHeap: block size does not touch the next block\n");
 
-// 	if ( block->next->prev != block)
-// 	    I_Error ("Z_CheckHeap: next block doesn't have proper back link\n");
+	if ( block->next->prev != block)
+	    I_Error ("Z_CheckHeap: next block doesn't have proper back link\n");
 
-// 	if (block->tag == PU_FREE && block->next->tag == PU_FREE)
-// 	    I_Error ("Z_CheckHeap: two consecutive free blocks\n");
-//     }
-// }
+	if (block->tag == PU_FREE && block->next->tag == PU_FREE)
+	    I_Error ("Z_CheckHeap: two consecutive free blocks\n");
+    }
+}
 
 
 

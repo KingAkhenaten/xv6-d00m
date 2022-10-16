@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <limits.h>
 // I am not sure if these are fully freestanding but I'm going to try it anyway
+// edit: apparently fabs() is not implemented; it also is in something we can't use anyway (no mouse)
 #include <math.h>
 // Declaration for vprintf, which someone forgot to export in user.h
 void vprintf(int, const char *, va_list);
