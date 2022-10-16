@@ -501,7 +501,8 @@ menu_t  SaveDef =
 //
 void M_ReadSaveStrings(void)
 {
-    FILE   *handle;
+    // FILE   *handle;
+	int		fd;
     int     i;
     char    name[256];
 
@@ -509,15 +510,19 @@ void M_ReadSaveStrings(void)
     {
         M_StringCopy(name, P_SaveGameFile(i), sizeof(name));
 
-	handle = fopen(name, "rb");
-        if (handle == NULL)
+	// handle = fopen(name, "rb");
+	fd = open(name, O_RDONLY);
+        // if (handle == NULL)
+		if (fd == -1)
         {
             M_StringCopy(savegamestrings[i], EMPTYSTRING, SAVESTRINGSIZE);
             LoadMenu[i].status = 0;
             continue;
         }
-	fread(&savegamestrings[i], 1, SAVESTRINGSIZE, handle);
-	fclose(handle);
+	// fread(&savegamestrings[i], 1, SAVESTRINGSIZE, handle);
+	read(fd, &savegamestrings[i], 1 * SAVESTRINGSIZE);
+	// fclose(handle);
+	close(fd);
 	LoadMenu[i].status = 1;
     }
 }
