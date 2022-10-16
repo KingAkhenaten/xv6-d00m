@@ -22,14 +22,21 @@ extern int stderr;
 // stdio.h
 int snprintf(char * buf, size_t bufsz, const char * restrict format, ... );
 int vsnprintf(char * buf, size_t bufsz, const char * restrict format, va_list va);
+// sscanf supporting "%x" "%i" " 0x%x" " 0X%x" " 0%o" " %d" -> int. Return value checked ==1 for success in m_misc.c
+int sscanf(const char * buf, const char * restrict format, ... );
+
 // string.h
 int isspace(int c);
+int isdigit(int c);
+int isxdigit(int c);
 int toupper(int c);
 char * strdup(const char * str);
 char * strrchr(const char * str, char c);
 char * strncpy(char * dest, const char *src, size_t sz);
 int strncmp(const char * lhs, const char * rhs, size_t sz);
 char * strstr(const char * str, const char * substr);
+double atof(const char * str);
+
 // stdlib.h
 int abs(int x);
 void * realloc(void * ptr, size_t newsz);
