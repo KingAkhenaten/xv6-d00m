@@ -36,8 +36,8 @@ void M_FindResponseFile(void);
 
 void dg_Create();
 
-
-int main(int argc, char **argv)
+// renamed so GCC linker does not complain
+int doom_main(int argc, char **argv)
 {
     // save arguments
 

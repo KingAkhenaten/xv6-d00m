@@ -1076,7 +1076,8 @@ static void D_Endoom(void)
     endoom = W_CacheLumpName(DEH_String("ENDOOM"), PU_STATIC);
 
     I_Endoom(endoom);
-
+	// Stick in a fb release
+	release_fb();
 	exit(0);
 }
 

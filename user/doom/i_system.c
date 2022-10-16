@@ -449,9 +449,11 @@ void I_Error (char *error, ...)
 
     exit(-1);
 #else
-    while (true)
-    {
-    }
+    // while (true)
+    // {
+    // }
+	release_fb();
+	exit(-1);
 #endif
 }
 
