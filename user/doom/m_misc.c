@@ -110,20 +110,18 @@ long M_FileLength(int handle)
 
 boolean M_WriteFile(char *name, void *source, int length)
 {
-    FILE *handle;
+    int fd;
     int	count;
 	
-    handle = fopen(name, "wb");
+    fd = open(name, O_RDWR | O_CREATE);
 
-    if (handle == NULL)
-	return false;
+    if (fd == -1) return false;
 
-    count = fwrite(source, 1, length, handle);
-    fclose(handle);
+	count = write(fd, source, length);
+    // count = fwrite(source, 1, length, handle);
+    close(fd);
 	
-    if (count < length)
-	return false;
-		
+    if (count < length) return false;
     return true;
 }
 
@@ -134,25 +132,25 @@ boolean M_WriteFile(char *name, void *source, int length)
 
 int M_ReadFile(char *name, byte **buffer)
 {
-    FILE *handle;
+    int fd;
     int	count, length;
     byte *buf;
 	
-    handle = fopen(name, "rb");
-    if (handle == NULL)
-	I_Error ("Couldn't read file %s", name);
+    // handle = fopen(name, "rb");
+	fd = open(name, O_RDONLY);
+    if (fd == -1) I_Error ("Couldn't read file %s", name);
 
     // find the size of the file by seeking to the end and
     // reading the current position
 
-    length = M_FileLength(handle);
+    length = M_FileLength(fd);
     
     buf = Z_Malloc (length, PU_STATIC, NULL);
-    count = fread(buf, 1, length, handle);
-    fclose (handle);
+    // count = fread(buf, 1, length, handle);
+	count = read(fd, buf, length);
+    close(fd);
 	
-    if (count < length)
-	I_Error ("Couldn't read file %s", name);
+    if (count < length) I_Error ("Couldn't read file %s", name);
 		
     *buffer = buf;
     return length;

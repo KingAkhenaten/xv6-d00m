@@ -210,7 +210,7 @@ boolean I_ConsoleStdout(void)
 //
 // I_Init
 //
-/*
+/* This was commented out in the original code
 void I_Init (void)
 {
     I_CheckIsScreensaver();
@@ -264,55 +264,55 @@ static int ZenityAvailable(void)
 // Escape special characters in the given string so that they can be
 // safely enclosed in shell quotes.
 
-static char *EscapeShellString(char *string)
-{
-    char *result;
-    char *r, *s;
+// static char *EscapeShellString(char *string)
+// {
+//     char *result;
+//     char *r, *s;
 
-    // In the worst case, every character might be escaped.
-    result = malloc(strlen(string) * 2 + 3);
-    r = result;
+//     // In the worst case, every character might be escaped.
+//     result = malloc(strlen(string) * 2 + 3);
+//     r = result;
 
-    // Enclosing quotes.
-    *r = '"';
-    ++r;
+//     // Enclosing quotes.
+//     *r = '"';
+//     ++r;
 
-    for (s = string; *s != '\0'; ++s)
-    {
-        // From the bash manual:
-        //
-        //  "Enclosing characters in double quotes preserves the literal
-        //   value of all characters within the quotes, with the exception
-        //   of $, `, \, and, when history expansion is enabled, !."
-        //
-        // Therefore, escape these characters by prefixing with a backslash.
+//     for (s = string; *s != '\0'; ++s)
+//     {
+//         // From the bash manual:
+//         //
+//         //  "Enclosing characters in double quotes preserves the literal
+//         //   value of all characters within the quotes, with the exception
+//         //   of $, `, \, and, when history expansion is enabled, !."
+//         //
+//         // Therefore, escape these characters by prefixing with a backslash.
 
-        if (strchr("$`\\!", *s) != NULL)
-        {
-            *r = '\\';
-            ++r;
-        }
+//         if (strchr("$`\\!", *s) != NULL)
+//         {
+//             *r = '\\';
+//             ++r;
+//         }
 
-        *r = *s;
-        ++r;
-    }
+//         *r = *s;
+//         ++r;
+//     }
 
-    // Enclosing quotes.
-    *r = '"';
-    ++r;
-    *r = '\0';
+//     // Enclosing quotes.
+//     *r = '"';
+//     ++r;
+//     *r = '\0';
 
-    return result;
-}
+//     return result;
+// }
 
 // Open a native error box with a message using zenity
 
 static int ZenityErrorBox(char *message)
 {
-    int result;
-    char *escaped_message;
-    char *errorboxpath;
-    static size_t errorboxpath_size;
+    // int result;
+    // char *escaped_message;
+    // char *errorboxpath;
+    // static size_t errorboxpath_size;
 
     if (!ZenityAvailable())
     {
