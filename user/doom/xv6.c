@@ -5,10 +5,11 @@
 
 // stdio.h
 
-extern int stderr = 1; // cursed
+int stderr = 1; // cursed
 // Acts like snprintf, but cheats where it can get away with it
 // Based on the xv6 kernel's printf implementation
 int snprintf(const char * buf, size_t bufsz, const char * restrict format, ... ) {
+	#ifdef _SORRY_NOTHING_
 	va_list va; // varargs info
 	va_start(va, format); // initialise the varargs
 	int charbuf = 0; // index into buf, charbuf < bufsz
@@ -53,6 +54,8 @@ int snprintf(const char * buf, size_t bufsz, const char * restrict format, ... )
 		}
 	}
 	va_end(va);
+	#endif
+	return 0;
 }
 
 // string.h
@@ -87,8 +90,64 @@ char * strdup(const char * str) {
 		s++;
 	}
 	// we are at the null byte in source string, write to copy
-	dupstr[s] == '\0';
+	dupstr[s] = '\0';
 	return dupstr;
+}
+
+char * strrchr(const char * str, char c) {
+	char * ptr = (char *)str + strlen(str) - 1;
+	while (ptr > str) {
+		if(*ptr == c) return ptr;
+		ptr--;
+	}
+	if(*ptr == c) return ptr; // to avoid rolling over for the zero pointer (this should not happen though)
+	return NULL;
+}
+char * strncpy(char * dest, const char *src, size_t sz) {
+	size_t i = 0;
+	int hitnull = 0;
+	while (i < sz) {
+		if (src[i] == '\0') hitnull = 1;
+		if (hitnull) {
+			dest[i] = '\0';
+		} else {
+			dest[i] = src[i];
+		}
+		i++;
+	}
+	return dest;
+}
+
+int strncmp(const char * lhs, const char * rhs, size_t sz) {
+	size_t i = 0;
+	while (lhs[i] == rhs[i] && i < sz) i++;
+	return (unsigned char)lhs[i] - (unsigned char)rhs[i];
+}
+
+char * strstr(const char * str, const char * substr) {
+	uint strl = strlen(str);
+	uint substrl = strlen(substr);
+	if (substrl == 0) return (char *) str; // empty search string always succeeds
+	if (substrl > strl) return NULL; // search string longer than haystack string, always fails
+	size_t hayidx;
+	size_t needleidx;
+	// search all positions that are searchable
+	// str 3, needle 2 = pos 0 1
+	// str 5, needle 3 = pos 0 1 2
+	for (hayidx = 0; hayidx <= strl - substrl; hayidx++) {
+		// iterate the needle string indices
+		for (needleidx = 0; needleidx < substrl; needleidx++) {
+			// if mismatch, continue outer loop
+			if (str[hayidx + needleidx] != substr[needleidx]) {
+				goto continue_outer;
+			}
+		}
+		// if we get here, we iterated the whole substring; success
+		return (char *) &str[hayidx];
+		continue_outer: {} // block here to make compiler happy
+	}
+	// no success
+	return NULL;
 }
 
 // stdlib.h
@@ -102,7 +161,7 @@ int abs(int x) {
 // This is an ugly hack to get at the block size
 // Don't do this
 
-static union header {
+union header {
   	struct {
     	union header *ptr;
     	uint size;
@@ -119,7 +178,7 @@ void * realloc(void * ptr, size_t newsz) {
 	if (newblk == NULL) return NULL;
 	memmove(newblk,ptr,oldsz);
 	free(ptr);
-	return newsz;
+	return (void *) newblk;
 }
 void * calloc(size_t num, size_t size) {
 	size_t blksz = num * size;

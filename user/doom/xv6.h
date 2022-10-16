@@ -23,10 +23,10 @@ int snprintf(const char * buf, size_t bufsz, const char * restrict format, ... )
 int isspace(int c);
 int toupper(int c);
 char * strdup(const char * str);
-char * strrchr(const char * str, char c); // needs implementation
-// strncpy
-// strncmp
-// strstr
+char * strrchr(const char * str, char c);
+char * strncpy(char * dest, const char *src, size_t sz);
+int strncmp(const char * lhs, const char * rhs, size_t sz);
+char * strstr(const char * str, const char * substr);
 // stdlib.h
 int abs(int x);
 void * realloc(void * ptr, size_t newsz);
