@@ -403,6 +403,17 @@ int strncmp(const char * lhs, const char * rhs, size_t sz) {
 	return (unsigned char)lhs[i] - (unsigned char)rhs[i];
 }
 
+int strncasecmp(const char * lhs, const char * rhs, size_t sz) {
+	size_t i = 0;
+	while (toupper(lhs[i]) == toupper(rhs[i]) && i < sz) i++;
+	return (unsigned char)toupper(lhs[i]) - (unsigned char)toupper(rhs[i]);
+}
+int strcasecmp(const char * lhs, const char * rhs) {
+	size_t i = 0;
+	while (toupper(lhs[i]) == toupper(rhs[i])) i++;
+	return (unsigned char)toupper(lhs[i]) - (unsigned char)toupper(rhs[i]);
+}
+
 char * strstr(const char * str, const char * substr) {
 	uint strl = strlen(str);
 	uint substrl = strlen(substr);

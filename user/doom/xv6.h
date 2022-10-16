@@ -35,6 +35,8 @@ char * strdup(const char * str);
 char * strrchr(const char * str, char c);
 char * strncpy(char * dest, const char *src, size_t sz);
 int strncmp(const char * lhs, const char * rhs, size_t sz);
+int strncasecmp(const char * lhs, const char * rhs, size_t sz);
+int strcasecmp(const char * lhs, const char * rhs);
 char * strstr(const char * str, const char * substr);
 double atof(const char * str);
 
