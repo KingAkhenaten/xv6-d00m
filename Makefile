@@ -243,8 +243,8 @@ UPROGS=\
 	$U/_gputest\
 	$U/_doom
 
-fs.img: mkfs/mkfs README $(UPROGS)
-	mkfs/mkfs fs.img README $(UPROGS)
+fs.img: mkfs/mkfs README $(UPROGS) $U/default.cfg
+	mkfs/mkfs fs.img README $(UPROGS) $U/default.cfg
 
 -include kernel/*.d user/*.d
 
