@@ -41,6 +41,7 @@ int snprintf(char * buf, size_t bufsz, const char * restrict format, ... ) {
 
 // Acts like vsnprintf, same caveats as above
 int vsnprintf(char * buf, size_t bufsz, const char * restrict format, va_list va) {
+	// printf("snprintf called: format: \"%s\", bufsize: %d\n",format,bufsz);
 	int bufidx = 0; // index into buf, bufidx < bufsz
 	int formatidx = 0; // index into format, should stop at the null char
 	// walk the format string
@@ -102,6 +103,7 @@ int vsnprintf(char * buf, size_t bufsz, const char * restrict format, va_list va
 		}
 		
 	}
+	snputc(buf,bufsz,&bufidx,'\0'); // Null terminator
 	return 0;
 }
 

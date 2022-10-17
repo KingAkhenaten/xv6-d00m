@@ -1352,7 +1352,9 @@ void D_DoomMain (void)
     // Load configuration files before initialising other subsystems.
     DEH_printf("M_LoadDefaults: Load system defaults.\n");
     M_SetConfigFilenames("default.cfg", PROGRAM_PREFIX "doom.cfg");
+	// printf("binding vars");
     D_BindVariables();
+	// printf("actually loading defaults");
     M_LoadDefaults();
 
     // Save configuration at exit.
