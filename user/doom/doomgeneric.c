@@ -35,7 +35,8 @@ void DG_SleepMs(uint32_t ms) {
 }
 
 uint32_t DG_GetTicksMs() {
-	return uptime(); // This is actually the number of clock ticks; don't yet know how it maps to millis
+	// This is actually the number of clock ticks; each clock tick is 100ms
+	return uptime() * 100;
 }
 
 int DG_GetKey(int* pressed, unsigned char* key) {
