@@ -65,21 +65,22 @@ static void ChecksumAddLump(sha1_context_t *sha1_context, lumpinfo_t *lump)
 
 void W_Checksum(sha1_digest_t digest)
 {
-    sha1_context_t sha1_context;
-    unsigned int i;
+	// Apparently this isn't needed for xv6
+    // sha1_context_t sha1_context;
+    // unsigned int i;
 
-    SHA1_Init(&sha1_context);
+    // SHA1_Init(&sha1_context);
 
-    num_open_wadfiles = 0;
+    // num_open_wadfiles = 0;
 
-    // Go through each entry in the WAD directory, adding information
-    // about each entry to the SHA1 hash.
+    // // Go through each entry in the WAD directory, adding information
+    // // about each entry to the SHA1 hash.
 
-    for (i=0; i<numlumps; ++i)
-    {
-        ChecksumAddLump(&sha1_context, &lumpinfo[i]);
-    }
+    // for (i=0; i<numlumps; ++i)
+    // {
+    //     ChecksumAddLump(&sha1_context, &lumpinfo[i]);
+    // }
     
-    SHA1_Final(digest, &sha1_context);
+    // SHA1_Final(digest, &sha1_context);
 }
 
