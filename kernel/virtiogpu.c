@@ -218,9 +218,9 @@ void probe_mmio(void) {
 // ISR for virtiogpu interrupts. It's expected the ISR will only be called while an operation has yet to return
 // The operation should be spinning at this time waiting for the ISR to finish
 void virtiogpu_isr(void) {
-	printf("virtiogpu interrupt signalled\n");
+	// printf("virtiogpu interrupt signalled\n");
 	acquire(&gpulock);
-	printf("virtiogpu interrupt got the lock\n");
+	// printf("virtiogpu interrupt got the lock\n");
 	// time to figure out what virtio just did
 	// ack the interrupt
 	*V1(VIRTIO_MMIO_INTERRUPT_ACK) = *V1(VIRTIO_MMIO_INTERRUPT_STATUS) & 0x3;
@@ -270,7 +270,7 @@ void create_device_fb(void) {
 	// create the request struct-or at least write it
 	struct virtio_gpu_resource_create_2d * req = &createreq;
 	req->hdr.type = VIRTIO_GPU_CMD_RESOURCE_CREATE_2D;
-	req->format = VIRTIO_GPU_FORMAT_A8R8G8B8_UNORM;
+	req->format = VIRTIO_GPU_FORMAT_B8G8R8A8_UNORM; // reversed so Doom is happy
 	req->width = 320;
 	req->height = 200;
 	req->resource_id = 666; // should not matter what is here theoretically as long as it is consistent
@@ -411,7 +411,7 @@ void transfer_fb_us(void) {
 	req->padding = 0; // just to be safe
 	
 	bind_desc_and_fire_us(req,sizeof(struct virtio_gpu_transfer_to_host_2d));
-	printf("transfer_fb_us ends\n");
+	// printf("transfer_fb_us ends\n");
 }
 
 // Flush the screen so the framebuffer is drawn - user syscall version
@@ -431,7 +431,7 @@ void flush_resource_us(void) {
 	req->padding = 0; // again, to be safe
 	
 	bind_desc_and_fire_us(req,sizeof(struct virtio_gpu_resource_flush));
-	printf("resource_flush_us ends\n");
+	// printf("resource_flush_us ends\n");
 }
 
 // Bind the needed descriptors for input/output buffers, fire the request, and sleep the current process until
@@ -465,11 +465,11 @@ void bind_desc_and_fire_us(void * req_addr, uint32 req_size) {
 
 // Sleep the current process until virtiogpu becomes dormant.
 void sleep_until_dormant(void) {
-	printf("waiting for dormant virtiogpu\n");
+	// printf("waiting for dormant virtiogpu\n");
 	while (request_inflight == 1) {
 		sleep(&request_inflight,&gpulock);
 	}
-	printf("virtiogpu now dormant\n");
+	// printf("virtiogpu now dormant\n");
 }
 
 // Make current process acquire the framebuffer
