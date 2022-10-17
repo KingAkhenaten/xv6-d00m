@@ -3,7 +3,8 @@
 
 
 #define ROOTINO  1   // root i-number
-#define BSIZE 1024  // block size
+// Originally 1024, but Doom is too big unless this is raised
+#define BSIZE 65536  // block size
 
 // Disk layout:
 // [ boot block | super block | log | inode blocks |
