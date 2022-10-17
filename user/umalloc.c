@@ -24,6 +24,7 @@ static Header *freep;
 void
 free(void *ap)
 {
+  if (ap == 0) return; // free is supposed to check the pointer is null!
   Header *bp, *p;
 
   bp = (Header*)ap - 1;
