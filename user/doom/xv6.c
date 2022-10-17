@@ -44,6 +44,15 @@ int vsnprintf(char * buf, size_t bufsz, const char * restrict format, va_list va
 	// printf("snprintf called: format: \"%s\", bufsize: %d\n",format,bufsz);
 	int bufidx = 0; // index into buf, bufidx < bufsz
 	int formatidx = 0; // index into format, should stop at the null char
+	// trigger special cases
+	if (strcmp(format,"STCFN%.3d") == 0) {
+		snputs(buf,bufsz,&bufidx,"STCFN");
+		int64_t arg = va_arg(va,int64_t);
+		if (arg < 100) snputc(buf,bufsz,&bufidx,'0');
+		if (arg < 10) snputc(buf,bufsz,&bufidx,'0');
+		snputi(buf,bufsz,&bufidx,arg,10);
+		return 0;
+	}
 	// walk the format string
 	for (formatidx = 0; format[formatidx] != '\0'; formatidx++) {
 		// get current char in format string
