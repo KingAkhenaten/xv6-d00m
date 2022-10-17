@@ -64,7 +64,7 @@ vprintf(int fd, const char *fmt, va_list ap)
         putc(fd, c);
       }
     } else if(state == '%'){
-      if(c == 'd'){
+      if(c == 'd' || c == 'i'){
         printint(fd, va_arg(ap, int), 10, 1);
       } else if(c == 'l') {
         printint(fd, va_arg(ap, uint64), 10, 0);
