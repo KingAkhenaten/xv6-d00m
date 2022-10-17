@@ -53,6 +53,27 @@ int vsnprintf(char * buf, size_t bufsz, const char * restrict format, va_list va
 		snputi(buf,bufsz,&bufidx,arg,10);
 		return 0;
 	}
+	if (strcmp(format,"CWILV%2.2d") == 0) {
+		snputs(buf,bufsz,&bufidx,"CWILV");
+		int64_t arg = va_arg(va,int64_t);
+		if (arg < 10) snputc(buf,bufsz,&bufidx,'0');
+		snputi(buf,bufsz,&bufidx,arg,10);
+		return 0;
+	}
+	if (strcmp(format,"WIA%d%.2d%.2d") == 0) {
+		snputs(buf,bufsz,&bufidx,"WIA");
+		int64_t arg1 = va_arg(va,int64_t);
+		snputi(buf,bufsz,&bufidx,arg1,10);
+
+		int64_t arg2 = va_arg(va,int64_t);
+		if (arg2 < 10) snputc(buf,bufsz,&bufidx,'0');
+		snputi(buf,bufsz,&bufidx,arg2,10);
+
+		int64_t arg3 = va_arg(va,int64_t);
+		if (arg3 < 10) snputc(buf,bufsz,&bufidx,'0');
+		snputi(buf,bufsz,&bufidx,arg3,10);
+		return 0;
+	}
 	// walk the format string
 	for (formatidx = 0; format[formatidx] != '\0'; formatidx++) {
 		// get current char in format string
