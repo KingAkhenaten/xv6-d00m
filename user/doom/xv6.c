@@ -400,14 +400,16 @@ char * strncpy(char * dest, const char *src, size_t sz) {
 }
 
 int strncmp(const char * lhs, const char * rhs, size_t sz) {
+	if (sz == 0) return 0;
 	size_t i = 0;
-	while (lhs[i] != '\0' && lhs[i] == rhs[i] && i < sz) i++;
+	while (lhs[i] != '\0' && lhs[i] == rhs[i] && i < sz - 1) i++;
 	return (unsigned char)lhs[i] - (unsigned char)rhs[i];
 }
 
 int strncasecmp(const char * lhs, const char * rhs, size_t sz) {
+	if (sz == 0) return 0;
 	size_t i = 0;
-	while (lhs[i] != '\0' && toupper(lhs[i]) == toupper(rhs[i]) && i < sz) i++;
+	while (lhs[i] != '\0' && toupper(lhs[i]) == toupper(rhs[i]) && i < sz - 1) i++;
 	return (unsigned char)toupper(lhs[i]) - (unsigned char)toupper(rhs[i]);
 }
 int strcasecmp(const char * lhs, const char * rhs) {
