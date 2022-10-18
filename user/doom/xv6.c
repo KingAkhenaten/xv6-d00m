@@ -480,7 +480,7 @@ char * strstr(const char * str, const char * substr) {
 double atof(const char * str) {
 	size_t len = strlen(str); // string length
 	size_t i = 0; // where in the string we are
-	const uint32 FRAC_LIMIT = 1000000000; // The highest power of 10 representable as an int; limit on fractional precision we can parse
+	// const uint32 FRAC_LIMIT = 1000000000; // The highest power of 10 representable as an int; limit on fractional precision we can parse
 	const uint32 FRAC_LIMIT_DIGITS = 9; // Number of zero digits in the above
 	uint32 integral = 0;
 	uint32 fractional = 0;
@@ -525,15 +525,17 @@ double atof(const char * str) {
 	}
 	// Fractional part
 	int digitlimit = FRAC_LIMIT_DIGITS;
+	uint32 fracdenom = 1;
 	while (digitlimit > 0 && i < len && isdigit(str[i])) {
 		fractional = 10 * fractional + ctoi(str[i]);
+		fracdenom = 10 * fracdenom;
 		i++;
 		digitlimit--;
 	}
 	// Make final number
 	double val = integral;
 	if (negate) val = -val;
-	val = val + ((double)fractional / (double)FRAC_LIMIT);
+	val = val + ((double)fractional / (double)fracdenom);
 	return val;
 }
 
