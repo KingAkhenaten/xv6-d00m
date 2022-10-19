@@ -1550,6 +1550,7 @@ void G_DoLoadGame (void)
     gameaction = ga_nothing; 
 	 
     save_stream = open(savename, O_RDONLY);
+	save_pos = 0;
 
     if (save_stream == -1)
     {

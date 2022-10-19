@@ -36,7 +36,7 @@
 #define VERSIONSIZE 16 
 
 int save_stream;
-int save_pos; // added to avoid a ftell call xv6 lacks
+unsigned long save_pos; // added to avoid a ftell call xv6 lacks
 int savegamelength;
 boolean savegame_error;
 
@@ -82,7 +82,7 @@ static byte saveg_read8(void)
 {
     byte result;
 
-    if (read(save_stream, &result, 1) == -1)
+    if (read(save_stream, &result, 1) < 1)
     {
         if (!savegame_error)
         {
@@ -93,13 +93,14 @@ static byte saveg_read8(void)
         }
     } else {
 		save_pos++;
+		if (save_pos % 16 == 0) printf("save_pos: %d\n",save_pos);
 	}
     return result;
 }
 
 static void saveg_write8(byte value)
 {
-    if (write(save_stream, &value, 1) == -1)
+    if (write(save_stream, &value, 1) < 1)
     {
         if (!savegame_error)
         {
@@ -109,6 +110,7 @@ static void saveg_write8(byte value)
         }
     } else {
 		save_pos++;
+		if (save_pos % 16 == 0) printf("save_pos: %d\n",save_pos);
 	}
 }
 
