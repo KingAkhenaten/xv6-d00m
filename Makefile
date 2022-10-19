@@ -19,6 +19,7 @@ OBJS = \
   $K/syscall.o \
   $K/sysproc.o \
   $K/sysgpu.o \
+  $K/syskbd.o \
   $K/bio.o \
   $K/fs.o \
   $K/log.o \
@@ -241,6 +242,7 @@ UPROGS=\
 	$U/_motd\
 	$U/_ed\
 	$U/_gputest\
+	$U/_kbdtest\
 	$U/_doom
 
 fs.img: mkfs/mkfs README $(UPROGS) $U/default.cfg $U/DOOM1.WAD
@@ -286,7 +288,7 @@ qemu-gdb: $K/kernel .gdbinit fs.img
 	$(QEMU) $(QEMUOPTS) $(KEYBOARDOPTS) $(DISPLAYOPTS) -S $(QEMUGDB) 
 
 qemu-vga: $K/kernel fs.img
-	$(QEMU) $(QEMUOPTS) $(KEYBOARDOPTS) $(DISPLAYOPTS)
+	$(QEMU) $(QEMUOPTS) $(KEYBOARDOPTS) $(DISPLAYOPTS) -serial stdio
 
 qemu-vga-nographic: $K/kernel fs.img
 	$(QEMU) $(QEMUOPTS) $(KEYBOARDOPTS) $(DISPLAYOPTS) -nographic

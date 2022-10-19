@@ -1,4 +1,9 @@
 struct stat;
+struct input_event{
+	uint16 type;
+	uint16 code;
+	uint32 value;
+};
 
 // system calls
 int fork(void);
@@ -48,3 +53,5 @@ void transfer_fb(void);
 uint32* acquire_fb(void);
 void release_fb(void);
 int holds_fb(void);
+uint64 kbdcmd(void);
+struct input_event poll_kbd(void);
