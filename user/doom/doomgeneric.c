@@ -139,6 +139,7 @@ From evdev
 */
 
 static unsigned char trantbl[] = {
+	// 0
 	0,
 	KEY_ESCAPE,
 	'1',
@@ -147,6 +148,7 @@ static unsigned char trantbl[] = {
 	'4',
 	'5',
 	'6',
+	// 8
 	'7',
 	'8',
 	'9',
@@ -155,6 +157,7 @@ static unsigned char trantbl[] = {
 	KEY_EQUALS,
 	KEY_BACKSPACE,
 	KEY_TAB,
+	// 16
 	'Q',
 	'W',
 	'E',
@@ -163,6 +166,7 @@ static unsigned char trantbl[] = {
 	'Y',
 	'U',
 	'I',
+	// 24
 	'O',
 	'P',
 	0,
@@ -171,6 +175,7 @@ static unsigned char trantbl[] = {
 	KEY_FIRE,
 	'A',
 	'S',
+	// 32
 	'D',
 	'F',
 	'G',
@@ -179,14 +184,16 @@ static unsigned char trantbl[] = {
 	'K',
 	'L',
 	0,
+	// 40
 	0,
 	0,
-	0,
+	KEY_RSHIFT, // actually LSHIFT but Doom doesn't define one
 	0,
 	'Z',
 	'X',
 	'C',
 	'V',
+	// 48
 	'B',
 	'N',
 	'M',
@@ -195,6 +202,7 @@ static unsigned char trantbl[] = {
 	0,
 	KEY_RSHIFT,
 	0,
+	// 56
 	KEY_LALT,
 	KEY_USE,
 	0,
@@ -203,6 +211,7 @@ static unsigned char trantbl[] = {
 	KEY_F3,
 	KEY_F4,
 	KEY_F5,
+	// 64
 	KEY_F6,
 	KEY_F7,
 	KEY_F8,
@@ -211,6 +220,7 @@ static unsigned char trantbl[] = {
 	KEY_F11,
 	KEY_F12,
 	0,
+	// 72
 	0,
 	0,
 	0,
@@ -219,6 +229,7 @@ static unsigned char trantbl[] = {
 	0,
 	0,
 	0,
+	// 80
 	0,
 	0,
 	0,
@@ -227,6 +238,7 @@ static unsigned char trantbl[] = {
 	0,
 	0,
 	0,
+	// 88
 	0,
 	0,
 	0,
@@ -235,6 +247,7 @@ static unsigned char trantbl[] = {
 	0,
 	0,
 	0,
+	// 96
 	0,
 	KEY_RCTRL,
 	0,
@@ -243,6 +256,7 @@ static unsigned char trantbl[] = {
 	0,
 	0,
 	KEY_UPARROW,
+	// 104
 	0,
 	KEY_LEFTARROW,
 	KEY_RIGHTARROW,
@@ -251,6 +265,7 @@ static unsigned char trantbl[] = {
 	0,
 	0,
 	0,
+	// 112
 	0,
 	0,
 	0,
@@ -259,6 +274,7 @@ static unsigned char trantbl[] = {
 	0,
 	0,
 	KEY_PAUSE,
+	// 120
 	0,
 };
 
