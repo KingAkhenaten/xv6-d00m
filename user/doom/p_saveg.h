@@ -57,7 +57,11 @@ void P_UnArchiveSpecials (void);
 
 extern int save_stream;
 extern unsigned long save_pos;
+extern uint ioidx;
 extern boolean savegame_error;
+
+// Flush pending writes
+int writeRemaining(void);
 
 
 #endif

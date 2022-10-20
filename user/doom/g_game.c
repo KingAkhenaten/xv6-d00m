@@ -1551,6 +1551,7 @@ void G_DoLoadGame (void)
 	 
     save_stream = open(savename, O_RDONLY);
 	save_pos = 0;
+	ioidx = 0;
 
     if (save_stream == -1)
     {
@@ -1622,6 +1623,7 @@ void G_DoSaveGame (void)
     // a corrupted one, or if a savegame buffer overrun occurs.
     save_stream = open(temp_savegame_file, O_RDWR | O_CREATE);
 	save_pos = 0;
+	ioidx = 0;
 
     if (save_stream == -1)
     {
@@ -1647,6 +1649,10 @@ void G_DoSaveGame (void)
     P_ArchiveSpecials (); 
 	 
     P_WriteSaveGameEOF();
+	// Sneak in a write flush
+	if (!writeRemaining()) {
+		savegame_error = true;
+	}
 	 
     // Enforce the same savegame size limit as in Vanilla Doom, 
     // except if the vanilla_savegame_limit setting is turned off.
