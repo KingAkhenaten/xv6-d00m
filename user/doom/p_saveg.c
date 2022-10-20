@@ -36,9 +36,61 @@
 #define VERSIONSIZE 16 
 
 int save_stream;
-int save_pos; // added to avoid a ftell call xv6 lacks
+unsigned long save_pos; // added to avoid a ftell call xv6 lacks
 int savegamelength;
 boolean savegame_error;
+
+// Buffer to reduce amount of syscalls
+#define BUFSIZE 4096
+byte iobuffer[BUFSIZE];
+uint ioidx = 0; // where in the buffer we are
+uint iolimit = BUFSIZE; // length of valid data in buffer (not used for writing)
+
+// Returns 1 on success, 0 otherwise (error or EOF)
+static int writeBufferedByte(byte b);
+static int readBufferedByte(byte * b);
+// Write any data yet to be committed (already in p_saveg.h)
+// int writeRemaining(void);
+
+static int writeBufferedByte(byte b) {
+	// emplace byte in buffer
+	iobuffer[ioidx] = b;
+	ioidx++;
+	// buffer full, write out full buffer and reset index
+	if (ioidx == BUFSIZE) {
+		if (write(save_stream,&iobuffer,BUFSIZE) != BUFSIZE) {
+			return 0;
+		} else {
+			ioidx = 0;
+		}
+	}
+	return 1;
+}
+
+int writeRemaining(void) {
+	// Note: the below relies on short-circuiting of &&
+	if (ioidx > 0 && write(save_stream,&iobuffer,ioidx) != ioidx) {
+		return 0;
+	}
+	return 1;
+}
+
+static int readBufferedByte(byte * b) {
+	// buffer empty, fill with data
+	if (ioidx == 0) {
+		int result = read(save_stream, &iobuffer, BUFSIZE);
+		if (result < 1) return 0;
+		iolimit = result;
+	}
+	// read a byte from the buffer
+	*b = iobuffer[ioidx];
+	ioidx++;
+	// reached the end of the buffer, wrap back around to cause reread next time
+	if (ioidx == iolimit) {
+		ioidx = 0;
+	}
+	return 1;
+}
 
 // Get the filename of a temporary file to write the savegame to.  After
 // the file has been successfully saved, it will be renamed to the 
@@ -80,9 +132,10 @@ char *P_SaveGameFile(int slot)
 
 static byte saveg_read8(void)
 {
-    byte result;
+    byte result = 0;
 
-    if (read(save_stream, &result, 1) == -1)
+    // if (read(save_stream, &result, 1) < 1)
+	if (readBufferedByte(&result) == 0)
     {
         if (!savegame_error)
         {
@@ -93,13 +146,15 @@ static byte saveg_read8(void)
         }
     } else {
 		save_pos++;
+		// if (save_pos % 16 == 0) printf("save_pos: %d\n",save_pos);
 	}
     return result;
 }
 
 static void saveg_write8(byte value)
 {
-    if (write(save_stream, &value, 1) == -1)
+    // if (write(save_stream, &value, 1) < 1)
+	if (writeBufferedByte(value) == 0)
     {
         if (!savegame_error)
         {
@@ -109,6 +164,7 @@ static void saveg_write8(byte value)
         }
     } else {
 		save_pos++;
+		// if (save_pos % 16 == 0) printf("save_pos: %d\n",save_pos);
 	}
 }
 

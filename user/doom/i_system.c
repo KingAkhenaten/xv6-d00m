@@ -242,6 +242,8 @@ void I_Quit (void)
         entry->func();
         entry = entry->next;
     }
+	release_fb();
+	exit(0);
 
 #if ORIGCODE
     SDL_Quit();

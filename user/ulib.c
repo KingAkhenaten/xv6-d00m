@@ -169,3 +169,15 @@ holds_fb(void)
 {
 	return (int) gpucmd(3);
 }
+
+struct input_event
+poll_kbd(void)
+{
+  struct input_event kbd_struct;
+  uint64 kbd_event = kbdcmd();
+  kbd_struct.type = (kbd_event >> 48) & 0xFFFF;
+  kbd_struct.code = (kbd_event >> 32) & 0xFFFF;
+  kbd_struct.value = kbd_event & 0xFFFFFFFF;
+
+  return kbd_struct;
+}

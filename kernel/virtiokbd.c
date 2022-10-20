@@ -10,6 +10,12 @@
 #define V0(r) ((volatile uint32 *)(VIRTIO0 + (r)))
 #define V1(r) ((volatile uint32 *)(VIRTIO1 + (r)))
 #define V2(r) ((volatile uint32 *)(VIRTIO2 + (r)))
+#define EVENT_BUF_SIZE 64
+
+struct virtio_input_event event_buffer[EVENT_BUF_SIZE];
+int enter_buffer = 0;
+int exit_buffer = 0;
+int event_buffer_count = 0;
 
 // virtio structures
 
@@ -255,6 +261,12 @@ void virtiokbd_isr(void) {
 						     , input_event_array[id].type
 						     , input_event_array[id].code
 						     , input_event_array[id].value);
+		if (input_event_array[id].type == 1 && event_buffer_count != EVENT_BUF_SIZE){
+			event_buffer[enter_buffer] = input_event_array[id];
+			enter_buffer += 1;
+			enter_buffer = enter_buffer % EVENT_BUF_SIZE;
+			event_buffer_count += 1;
+		}
                 // go to next index
                 eventq_used_idx += 1;
         	// mark the buffer as free
@@ -290,39 +302,19 @@ void kbd_bind_desc_and_fire_eventq(int desc_idx) {
         *V2(VIRTIO_MMIO_QUEUE_NOTIFY) = 0; // value 0 for eventq
 }
 
-/*
-// Probe the MMIO ports we expect and print what is there
-void probe_mmio(void) {
-        printf("probing virtio0: ");
-        if (*V0(VIRTIO_MMIO_MAGIC_VALUE) == VIRTIO_MMIO_MAGIC_VALUE_EXPECTED) {
-                printf("virtio ");
-                uint32 deviceId = *V0(VIRTIO_MMIO_DEVICE_ID);
-                if (deviceId == 0) {
-                        printf("<not present>");
-                } else if (deviceId == 16) {
-                        printf("GPU");
-                } else if (deviceId == 2) {
-                        printf("blockdev");
-                } else {
-                        printf("deviceid %d",deviceId);
-                }
-                printf("\n");
-        }
-
-        printf("probing virtio1: ");
-        if (*V1(VIRTIO_MMIO_MAGIC_VALUE) == VIRTIO_MMIO_MAGIC_VALUE_EXPECTED) {
-                printf("virtio ");
-                uint32 deviceId = *V1(VIRTIO_MMIO_DEVICE_ID);
-                if (deviceId == 0) {
-                        printf("<not present>");
-                } else if (deviceId == 16) {
-                        printf("GPU");
-                } else if (deviceId == 2) {
-                        printf("blockdev");
-                } else {
-                        printf("deviceid %d",deviceId);
-                }
-                printf("\n");
-        }
+struct virtio_input_event ring_buffer_advance(void){
+	if (event_buffer_count > 0){
+		int idx = exit_buffer;
+		exit_buffer += 1;
+		exit_buffer = exit_buffer % EVENT_BUF_SIZE;
+		event_buffer_count -= 1;
+		return event_buffer[idx];
+	}
+	else{
+		struct virtio_input_event empty_input_event;
+		empty_input_event.type = 0;
+		empty_input_event.code = 0;
+		empty_input_event.value = 0;
+		return empty_input_event;
+	}
 }
-*/
