@@ -185,16 +185,19 @@ devintr()
 
     // irq indicates which device interrupted.
     int irq = plic_claim();
-    if(irq == UART0_IRQ){
+    if (irq == UART0_IRQ) {
       uartintr();
-    } else if(irq == VIRTIO0_IRQ){
+    } else if (irq == VIRTIO0_IRQ) {
       virtio_disk_intr();
     } else if (irq == VIRTIO1_IRQ) {
-	  virtiogpu_isr();
+      virtiogpu_isr();
     } else if (irq == VIRTIO2_IRQ) {
-	    printf("virtiokbd\n");
-	    virtiokbd_isr(); 
-    } else if(irq){
+      printf("virtiokbd\n");
+      virtiokbd_isr(); 
+    } else if (irq == VIRTIO3_IRQ) {
+      printf("virtiosnd trap\n");
+      virtiosnd_isr();
+    } else if (irq) {
       printf("unexpected interrupt irq=%d\n", irq);
     }
 

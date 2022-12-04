@@ -32,7 +32,8 @@ OBJS = \
   $K/plic.o \
   $K/virtio_disk.o \
   $K/virtiogpu.o \
-  $K/virtiokbd.o
+  $K/virtiokbd.o \
+  $K/virtiosnd.o 
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
@@ -275,6 +276,7 @@ QEMUOPTS += -drive file=fs.img,if=none,format=raw,id=x0
 QEMUOPTS += -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 DISPLAYOPTS = -device virtio-gpu-device,bus=virtio-mmio-bus.1,xres=320,yres=200
 KEYBOARDOPTS = -device virtio-keyboard-device,bus=virtio-mmio-bus.2
+AUDIOOPTS = -device intel-hda,bus=virtio-mmio-bus.3
 SPICEOPTS = -spice port=32666,disable-ticketing=on
 
 qemu: $K/kernel fs.img

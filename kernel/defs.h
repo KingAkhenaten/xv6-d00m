@@ -194,5 +194,8 @@ void            virtiogpu_isr(void); // interrupt service routine for virtio1
 void            init_virtiokbd(void);
 void            virtiokbd_isr(void); // interrupt service routine for virtio2
 
+void		init_virtiosnd(void);
+void		virtiosnd_isr(void);
+
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

@@ -36,6 +36,9 @@ kvmmake(void)
   // try for the virtiokbd
   kvmmap(kpgtbl, VIRTIO2, VIRTIO2, PGSIZE, PTE_R | PTE_W);
 
+  // try for audio as well
+  kvmmap(kpgtbl, VIRTIO3, VIRTIO3, PGSIZE, PTE_R | PTE_W);
+
   // PLIC
   kvmmap(kpgtbl, PLIC, PLIC, 0x400000, PTE_R | PTE_W);
 
